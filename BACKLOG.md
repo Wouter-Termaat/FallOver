@@ -121,7 +121,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-025** · M · Opening fly-through
 - [x] **FO-027** · M · Save system
 - [x] **FO-024** · S · Stars
-- [ ] **FO-026** · M · Win and fail screens
+- [x] **FO-026** · M · Win and fail screens
 - [ ] **FO-029** · M · Mid-build save and resume
 - [ ] **FO-032** · M · Record a reference solution by playing
 - [ ] **FO-033** · S · Level reassignment validation
@@ -1501,7 +1501,7 @@ correctly restore normal control. Not tested visually — the actual sweep motio
 
 ---
 
-### [ ] FO-026 — Win and fail screens · M
+### [x] FO-026 — Win and fail screens · M
 
 **Goal:** close the loop.
 
@@ -1524,6 +1524,14 @@ correctly restore normal control. Not tested visually — the actual sweep motio
 
 **Note:** diamond payouts for new stars are shown here, but that logic is Phase 4 (FO-042). Leave a clear
 insertion point rather than a stub that pays nothing.
+
+**Findings:** `LevelFlow` is the one choke point — every win passes through `_on_won()` before the screen
+appears, with an explicit comment marking it as the PRD §13.5 seam. Share button built disabled from the
+start, per §5.11. Verified headless by emitting `WinCondition`'s signals directly (physics-triggered win/
+fail already verified in FO-023): win screen shows correctly with the right star count and persists via
+`Scoring`, fail prompt shows on failure, both start hidden. `level`/`level_id` are placeholder exports
+(the same `w1_l01.tres` FO-020 generated) until real level select (Phase 4) supplies them properly. Diamond
+payout insertion point noted per the story but not built — Phase 4 territory, correctly out of scope here.
 
 ---
 

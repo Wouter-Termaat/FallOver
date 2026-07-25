@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/camera_rig.tscn" id="1_camera_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/block_palette.tscn" id="2_block_palette"]
@@ -8,6 +8,10 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="6_game_hud"]
 [ext_resource type="Script" path="res://scripts/simulation/win_condition.gd" id="7_win_condition"]
 [ext_resource type="Script" path="res://scripts/camera/level_intro_camera.gd" id="8_level_intro_camera"]
+[ext_resource type="PackedScene" path="res://scenes/ui/win_screen.tscn" id="9_win_screen"]
+[ext_resource type="PackedScene" path="res://scenes/ui/fail_prompt.tscn" id="10_fail_prompt"]
+[ext_resource type="Script" path="res://scripts/ui/level_flow.gd" id="11_level_flow"]
+[ext_resource type="Resource" path="res://resources/levels/w1_l01.tres" id="12_w1_l01"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_Ground"]
 albedo_color = Color(0.509804, 0.729412, 0.380392, 1)
@@ -151,6 +155,10 @@ grow_horizontal = 0
 grow_vertical = 0
 text = "Skip"
 
+[node name="WinScreen" parent="UI" instance=ExtResource("9_win_screen")]
+
+[node name="FailPrompt" parent="UI" instance=ExtResource("10_fail_prompt")]
+
 [node name="PlacementController" type="Node3D" parent="." node_paths=PackedStringArray("camera_rig", "palette")]
 script = ExtResource("3_placement_controller")
 camera_rig = NodePath("../CameraRig")
@@ -185,5 +193,14 @@ position_b = Vector3(26, 10, -14)
 look_at_b = Vector3(26, 2, 0)
 size_b = 20.0
 duration = 3.0
+
+[node name="LevelFlow" type="Node" parent="." node_paths=PackedStringArray("run_controller", "win_condition", "win_screen", "fail_prompt")]
+script = ExtResource("11_level_flow")
+run_controller = NodePath("../RunController")
+win_condition = NodePath("../WinCondition")
+win_screen = NodePath("../UI/WinScreen")
+fail_prompt = NodePath("../UI/FailPrompt")
+level = ExtResource("12_w1_l01")
+level_id = "w1_l01"
 
 [connection signal="pressed" from="UI/SkipIntroButton" to="LevelIntroCamera" method="skip"]
