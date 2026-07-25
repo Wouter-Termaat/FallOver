@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BlockDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/block_definition.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Standard Block"
+extents = Vector3(0.5, 4, 2)
+mass = 1.0
+friction = 2.0
+restitution = 0.0
+coin_price = 1
+palette_color = Color(0.192157, 0.521569, 0.662745, 1)

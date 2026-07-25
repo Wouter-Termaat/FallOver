@@ -98,7 +98,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 ### Phase 1 — Core interaction (10)
 
 - [x] **FO-009** · M · Grey-box island scene
-- [ ] **FO-010** · S · Block definition resource
+- [x] **FO-010** · S · Block definition resource
 - [ ] **FO-011** · M · Camera rig — orbit, pan, zoom, 45° snap
 - [ ] **FO-012** · S · Block palette UI
 - [ ] **FO-013** · L · Selection-driven placement input ⚠️ *highest risk in the project*
@@ -759,7 +759,7 @@ Verified on-device via screenshot — colours, shadows, and gap/ramp geometry al
 
 ---
 
-### [ ] FO-010 — Block definition resource · S
+### [x] FO-010 — Block definition resource · S
 
 **Goal:** the data structure that makes block types data rather than code (PRD §13.3).
 
@@ -781,6 +781,10 @@ Verified on-device via screenshot — colours, shadows, and gap/ramp geometry al
 
 **Out of scope:** ball and cylinder (rolling behaviour — Phase 3), per-type placement rules, price
 balancing, icons (grey-box uses text labels).
+
+**Findings:** Verified extensibility by creating a third throwaway `.tres` (no code changes), spawning it
+via `BlockSpawner.spawn()`, confirming it worked, then deleting it. Grey-box colours reuse the existing
+`Palette.STANDARD_BLOCK` / `Palette.LONG_BLOCK` constants.
 
 ---
 
