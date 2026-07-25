@@ -16,6 +16,9 @@ extends Node3D
 
 @export var block_count: int = 15
 @export var spacing: float = 2.4
+@export_group("Parallel chains (FO-005 active-body stress test)")
+@export var row_count: int = 1
+@export var row_spacing: float = 3.0
 
 @export_group("Block dimensions — Standard Block ratio, PRD §4.4 (H x L x D)")
 @export var block_height: float = 4.0
@@ -69,6 +72,7 @@ void fragment() {
 var _blocks: Array[RigidBody3D] = []
 var _started: bool = false
 var _perf_label: Label
+var _row_count_label: Label
 
 
 func _ready() -> void:
@@ -79,12 +83,15 @@ func _ready() -> void:
 		_build_perf_overlay()
 	if show_depth_debug:
 		_apply_depth_debug_material()
+	_build_row_count_controls()
 
-	# Headless mechanical verification only (FO-003 findings) — not part of
-	# normal play. Absent this flag, the scene behaves exactly as shipped.
+	# Headless mechanical verification only (FO-003/FO-005 findings) — not
+	# part of normal play. Absent these flags, the scene behaves as shipped.
 	if "--fo-autostart" in OS.get_cmdline_args():
 		await get_tree().create_timer(0.3).timeout
 		_start_run()
+	if "--fo-stress-test" in OS.get_cmdline_args():
+		await _run_stress_test()
 
 
 func _process(_delta: float) -> void:
@@ -112,6 +119,99 @@ func _build_perf_overlay() -> void:
 	_perf_label.add_theme_font_size_override(&"font_size", 28)
 	_perf_label.add_theme_color_override(&"font_color", Palette.WHITE)
 	canvas.add_child(_perf_label)
+
+
+func _build_row_count_controls() -> void:
+	var canvas: CanvasLayer = CanvasLayer.new()
+	add_child(canvas)
+
+	var container: HBoxContainer = HBoxContainer.new()
+	container.position = Vector2(12, 100)
+	canvas.add_child(container)
+
+	var minus_button: Button = Button.new()
+	minus_button.text = "− row"
+	minus_button.custom_minimum_size = Vector2(120, 64)
+	minus_button.pressed.connect(_on_row_count_changed.bind(-1))
+	container.add_child(minus_button)
+
+	_row_count_label = Label.new()
+	_row_count_label.custom_minimum_size = Vector2(140, 64)
+	_row_count_label.add_theme_font_size_override(&"font_size", 28)
+	_row_count_label.add_theme_color_override(&"font_color", Palette.WHITE)
+	_row_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_row_count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_update_row_count_label()
+	container.add_child(_row_count_label)
+
+	var plus_button: Button = Button.new()
+	plus_button.text = "+ row"
+	plus_button.custom_minimum_size = Vector2(120, 64)
+	plus_button.pressed.connect(_on_row_count_changed.bind(1))
+	container.add_child(plus_button)
+
+
+func _on_row_count_changed(delta: int) -> void:
+	row_count = max(1, row_count + delta)
+	_update_row_count_label()
+	_respawn()
+
+
+func _update_row_count_label() -> void:
+	if _row_count_label != null:
+		_row_count_label.text = "rows=%d (%d blocks)" % [row_count, row_count * block_count]
+
+
+func _clear_blocks() -> void:
+	for block in _blocks:
+		block.queue_free()
+	_blocks.clear()
+	for child in _ground.get_children():
+		child.queue_free()
+
+
+func _respawn() -> void:
+	_clear_blocks()
+	_started = false
+	_build_ground()
+	_spawn_chain()
+	_frame_camera()
+
+
+func _run_stress_test() -> void:
+	# Unattended sweep for FO-005: step row_count up, trigger every row
+	# simultaneously, sample performance once things are moving, and write
+	# results to user:// so they can be pulled after the app exits.
+	var candidate_row_counts: Array[int] = [48, 64, 96, 128]
+	var results: PackedStringArray = PackedStringArray()
+	for candidate in candidate_row_counts:
+		row_count = candidate
+		_update_row_count_label()
+		_respawn()
+		await get_tree().create_timer(0.3).timeout
+		_start_run()
+
+		var min_fps: float = 9999.0
+		var max_frame_ms: float = 0.0
+		var max_physics_ms: float = 0.0
+		var sample_seconds: float = 1.5
+		var elapsed: float = 0.0
+		while elapsed < sample_seconds:
+			await get_tree().process_frame
+			elapsed += get_process_delta_time()
+			min_fps = min(min_fps, Engine.get_frames_per_second())
+			max_frame_ms = max(max_frame_ms, Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
+			max_physics_ms = max(max_physics_ms, Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0)
+
+		results.append("rows=%d blocks=%d min_fps=%.1f max_frame_ms=%.2f max_physics_ms=%.2f" % [candidate, candidate * block_count, min_fps, max_frame_ms, max_physics_ms])
+
+		# Written after every phase, not just at the end, so a hang or crash
+		# at a high row count doesn't lose the phases that already completed.
+		var file: FileAccess = FileAccess.open("user://stress_results.txt", FileAccess.WRITE)
+		file.store_string("\n".join(results))
+		file.close()
+
+	get_tree().quit()
 
 
 func _apply_depth_debug_material() -> void:
@@ -142,17 +242,24 @@ func _start_run() -> void:
 	if _started or _blocks.is_empty():
 		return
 	_started = true
-	var first: RigidBody3D = _blocks[0]
 	var offset: Vector3 = Vector3(0.0, block_height * impulse_height_fraction, 0.0)
-	first.apply_impulse(Vector3.RIGHT * impulse_strength, offset)
+	# One block per row is index 0, block_count apart — every row's first
+	# block gets the impulse in the same physics tick, so active-body count
+	# actually scales with row_count instead of being capped by one wave front.
+	for row in row_count:
+		var first: RigidBody3D = _blocks[row * block_count]
+		first.apply_impulse(Vector3.RIGHT * impulse_strength, offset)
 
 
 func _spawn_chain() -> void:
-	for i in block_count:
-		var block: RigidBody3D = _make_block()
-		block.position = Vector3(i * spacing, block_height * 0.5, 0.0)
-		add_child(block)
-		_blocks.append(block)
+	var row_span: float = (row_count - 1) * row_spacing
+	for row in row_count:
+		var z: float = row * row_spacing - row_span * 0.5
+		for i in block_count:
+			var block: RigidBody3D = _make_block()
+			block.position = Vector3(i * spacing, block_height * 0.5, z)
+			add_child(block)
+			_blocks.append(block)
 
 
 func _make_block() -> RigidBody3D:
@@ -192,7 +299,9 @@ func _make_block() -> RigidBody3D:
 func _build_ground() -> void:
 	var chain_span: float = (block_count - 1) * spacing
 	var ground_length: float = chain_span + GROUND_MARGIN * 2.0
-	var ground_size: Vector3 = Vector3(ground_length, GROUND_THICKNESS, GROUND_WIDTH)
+	var row_span: float = (row_count - 1) * row_spacing
+	var ground_width: float = max(GROUND_WIDTH, row_span + GROUND_MARGIN)
+	var ground_size: Vector3 = Vector3(ground_length, GROUND_THICKNESS, ground_width)
 
 	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
 	var box_mesh: BoxMesh = BoxMesh.new()
@@ -214,7 +323,9 @@ func _build_ground() -> void:
 
 func _frame_camera() -> void:
 	var chain_span: float = (block_count - 1) * spacing
+	var row_span: float = (row_count - 1) * row_spacing
 	var chain_center: Vector3 = Vector3(chain_span * 0.5, block_height * 0.4, 0.0)
-	var distance: float = chain_span * 0.9 + block_height * 2.0
+	var widest_span: float = max(chain_span, row_span)
+	var distance: float = widest_span * 0.9 + block_height * 2.0
 	_camera.position = chain_center + Vector3(0.0, distance * 0.55, distance * 0.75)
 	_camera.look_at(chain_center, Vector3.UP)

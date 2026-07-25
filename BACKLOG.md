@@ -93,7 +93,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-006** · M · Android export pipeline
 - [x] **FO-007** · S · Renderer and min-API decisions — UI aspect check deferred to Phase 4 (no UI yet)
 - [x] **FO-004** · M · Choose the physics backend by measurement — Jolt fixes the FO-019 jitter
-- [ ] **FO-005** · S · Establish the rigid body ceiling
+- [x] **FO-005** · S · Establish the rigid body ceiling — ~150 active blocks, Pixel 9 Pro XL only
 
 ### Phase 1 — Core interaction (10)
 
@@ -664,7 +664,7 @@ this is exactly the stacked/resting-body scenario Jolt is documented to help wit
 
 ---
 
-### [ ] FO-005 — Establish the rigid body ceiling · S
+### [x] FO-005 — Establish the rigid body ceiling · S
 
 **Goal:** resolve PRD open decision #4 — how many active blocks a real phone can simulate at 60 fps. This
 number constrains every level design decision that follows.
@@ -683,6 +683,12 @@ number constrains every level design decision that follows.
   The ceiling is on how many move at once — which matters more once branching exists.
 
 **Files:** `docs/performance-budget.md`, `scripts/test/domino_chain_test.gd`
+
+**Findings:** ~150 simultaneously active blocks recommended, generous headroom below both thresholds —
+device (Pixel 9 Pro XL) held 55-60fps to 480 active blocks and only dropped near 30fps at ~1900. Only
+tested on this one flagship device; revisit on lower-end hardware later. Full data in
+`docs/performance-budget.md`. Added multi-row parallel-chain spawning plus an unattended `--fo-stress-test`
+sweep mode to the test scene for this.
 
 **Blocked by:** FO-003, FO-006, FO-004.
 
