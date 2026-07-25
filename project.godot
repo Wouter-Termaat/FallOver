@@ -45,3 +45,4 @@ physics_engine="Jolt Physics"
 [autoload]
 
 BuildState="*res://scripts/simulation/build_state.gd"
+CommandHistory="*res://scripts/placement/command_history.gd"

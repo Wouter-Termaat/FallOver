@@ -50,6 +50,7 @@ func _ready() -> void:
 func start_run() -> void:
 	if is_running:
 		return
+	CommandHistory.clear() # PRD §4.8: history is cleared when a run starts
 	_snapshot.capture()
 	for command in BuildState.commands:
 		var body: RigidBody3D = command.get_body()

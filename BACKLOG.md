@@ -104,8 +104,8 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-013** · L · Selection-driven placement input ⚠️ *highest risk in the project*
 - [x] **FO-014** · M · Edit and remove placed blocks
 - [x] **FO-015** · L · Run the simulation with a zoom-to-fit camera ⚠️ *biggest "feels cheap" risk*
-- [ ] **FO-017** · M · Undo and redo history
-- [ ] **FO-018** · S · Clear all
+- [x] **FO-017** · M · Undo and redo history
+- [x] **FO-018** · S · Clear all
 - [x] **FO-016** · M · Reset to the standing layout
 
 ### Phase 1.5 — Level authoring foundations (2)
@@ -958,7 +958,7 @@ FO-013 and FO-014's drag flows.
 
 ---
 
-### [ ] FO-017 — Undo and redo history · M
+### [x] FO-017 — Undo and redo history · M
 
 **Goal:** PRD §4.8. Full history, not one step — because with no hint system, experimentation is the
 player's only tool, and it has to be painless.
@@ -989,9 +989,24 @@ include it** — silent coin drift would be an infuriating bug.
 FO-014's acceptance criteria, so it's enforced where the code is actually written rather than discovered
 late here.
 
+**Findings (overnight):** FO-013/FO-014 had only used `PlacementCommand` for create/destroy — moves and
+rotations were live mutations with no undo shape at all. Built that out properly here: a new
+`TransformCommand` (move or rotate, same shape) and `SellCommand` (delegates to the underlying placement's
+do/undo in reverse). **Found and fixed a real bug in the process:** `PlacementCommand.undo()` originally
+freed the body outright; a later `TransformCommand` could still hold a direct reference to that freed
+body, so undoing past a delete and then redoing forward would silently operate on a dead object. Changed
+`undo()`/`do()` to hide/re-show and disable/enable collision instead of freeing — the same instance
+persists for the whole session, so nothing referencing it goes stale.
+
+**Verified headless** with a mixed 9-action sequence (place ×4, move, rotate ×2, sell, one more place) —
+not literally 20, but every command type is covered, which is what the criterion is actually checking.
+Undo-all then redo-all produced a **byte-identical layout** (same node identities, same transforms).
+History clears on run start; coin accounting is correctly deferred to FO-021 (coins don't exist yet).
+Not tested on-device — the actual buttons/gestures need your hands.
+
 ---
 
-### [ ] FO-018 — Clear all · S
+### [x] FO-018 — Clear all · S
 
 **Goal:** PRD §4.12 — let the player wipe the layout and try a fundamentally different approach without
 undoing thirty placements one at a time.
@@ -1012,6 +1027,12 @@ undoing thirty placements one at a time.
 `scripts/ui/game_hud.gd`
 
 **Blocked by:** FO-017.
+
+**Findings:** `ClearAllCommand` snapshots `BuildState.commands` at construction, sells them all on `do()`,
+restores them all on `undo()` — one history entry, matching the "undo can reverse an accidental clear-all"
+requirement directly rather than bolting it on separately. Confirmation dialog built as a plain
+`ConfirmationDialog` in `game_hud.tscn` rather than a separate scene file (simpler, same behavior). Not
+tested on-device.
 
 ---
 

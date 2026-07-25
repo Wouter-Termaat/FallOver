@@ -48,6 +48,7 @@ var _edit_command: PlacementCommand = null
 var _editing_existing: bool = false
 var _radial_menu: Control = null
 var _suppress_next_edit_menu_release: bool = false
+var _rotation_start_transform: Transform3D
 
 
 func _ready() -> void:
@@ -77,12 +78,15 @@ func _on_block_deselected() -> void:
 
 func _finish_rotation() -> void:
 	if _state == State.ROTATING:
+		if _current_command != null:
+			var body: RigidBody3D = _current_command.get_body()
+			if body.transform != _rotation_start_transform:
+				CommandHistory.push(TransformCommand.new(body, _rotation_start_transform, body.transform))
 		_state = State.IDLE
 		_current_command = null
 		_editing_existing = false
 		if _edit_command != null:
 			_deselect_edit() # finishing an edit-rotate fully deselects too
-		_editing_existing = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -231,20 +235,23 @@ func _apply_edge_pan(screen_pos: Vector2) -> void:
 
 func _commit_or_cancel() -> void:
 	if _editing_existing:
+		var body: RigidBody3D = _edit_command.get_body()
 		if _ghost_valid:
-			_edit_command.move_to(_ghost.global_transform)
+			var old_transform: Transform3D = body.transform
+			body.transform = _ghost.global_transform
+			CommandHistory.push(TransformCommand.new(body, old_transform, body.transform))
 			_current_command = _edit_command
+			_rotation_start_transform = body.transform
 			_state = State.ROTATING
 		else:
 			_state = State.IDLE
-		var body: RigidBody3D = _edit_command.get_body()
 		body.visible = true
 		body.collision_layer = PLACED_BLOCK_LAYER
 		_editing_existing = false
 	elif _ghost_valid:
 		_current_command = PlacementCommand.new(get_parent(), _definition, _ghost.global_transform)
-		_current_command.do()
-		BuildState.register(_current_command)
+		CommandHistory.execute(_current_command)
+		_rotation_start_transform = _current_command.get_body().transform
 		_state = State.ROTATING
 	else:
 		_state = State.IDLE
@@ -319,13 +326,13 @@ func _on_move_pressed() -> void:
 func _on_rotate_pressed() -> void:
 	_hide_radial_menu()
 	_current_command = _edit_command
+	_rotation_start_transform = _edit_command.get_body().transform
 	_state = State.ROTATING
 
 
 func _on_sell_pressed() -> void:
 	_hide_radial_menu()
-	BuildState.unregister(_edit_command)
-	_edit_command.undo() # refund lands in Phase 2 (FO-021) once coins exist
+	CommandHistory.execute(SellCommand.new(_edit_command)) # refund lands in Phase 2 (FO-021) once coins exist
 	_edit_command = null
 	camera_rig.input_enabled = true
 	_state = State.IDLE

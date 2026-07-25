@@ -37,3 +37,35 @@ layout_mode = 2
 custom_minimum_size = Vector2(140, 72)
 disabled = true
 text = "Fast-Forward"
+
+[node name="BuildRow" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 128.0
+offset_bottom = 176.0
+grow_horizontal = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="UndoButton" type="Button" parent="BuildRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 64)
+disabled = true
+text = "Undo"
+
+[node name="RedoButton" type="Button" parent="BuildRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 64)
+disabled = true
+text = "Redo"
+
+[node name="ClearAllButton" type="Button" parent="BuildRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 64)
+text = "Clear All"
+
+[node name="ClearAllConfirm" type="ConfirmationDialog" parent="."]
+title = "Clear all blocks?"
+dialog_text = "This removes every block you've placed. You can undo it."
+ok_button_text = "Clear All"
