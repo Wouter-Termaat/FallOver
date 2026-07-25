@@ -33,27 +33,81 @@ extends Node3D
 @export var impulse_strength: float = 5.0
 @export var impulse_height_fraction: float = 0.3
 
+@export_group("Debug (FO-004/FO-005/FO-007 measurement)")
+@export var show_perf_overlay: bool = true
+@export var show_depth_debug: bool = false
+
 const GROUND_MARGIN: float = 6.0
 const GROUND_WIDTH: float = 10.0
 const GROUND_THICKNESS: float = 1.0
+
+const DEPTH_DEBUG_SHADER_CODE: String = """
+shader_type spatial;
+render_mode unshaded;
+
+uniform sampler2D depth_tex : hint_depth_texture, filter_linear_mipmap;
+
+void fragment() {
+	float raw_depth = texture(depth_tex, SCREEN_UV).r;
+	vec3 ndc = vec3(SCREEN_UV * 2.0 - 1.0, raw_depth);
+	vec4 view = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
+	view.xyz /= view.w;
+	float linear_depth = -view.z;
+	float normalized = clamp(linear_depth / 60.0, 0.0, 1.0);
+	ALBEDO = vec3(normalized);
+}
+"""
 
 @onready var _ground: StaticBody3D = $Ground
 @onready var _camera: Camera3D = $Camera3D
 
 var _blocks: Array[RigidBody3D] = []
 var _started: bool = false
+var _ground_mesh: MeshInstance3D
+var _perf_label: Label
 
 
 func _ready() -> void:
 	_build_ground()
 	_spawn_chain()
 	_frame_camera()
+	if show_perf_overlay:
+		_build_perf_overlay()
+	if show_depth_debug:
+		_apply_depth_debug_material()
 
 	# Headless mechanical verification only (FO-003 findings) — not part of
 	# normal play. Absent this flag, the scene behaves exactly as shipped.
 	if "--fo-autostart" in OS.get_cmdline_args():
 		await get_tree().create_timer(0.3).timeout
 		_start_run()
+
+
+func _process(_delta: float) -> void:
+	if _perf_label != null:
+		var fps: float = Engine.get_frames_per_second()
+		var frame_ms: float = Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+		var physics_ms: float = Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
+		var renderer: String = ProjectSettings.get_setting("rendering/renderer/rendering_method")
+		_perf_label.text = "renderer=%s\nfps=%.0f frame=%.2fms physics=%.2fms" % [renderer, fps, frame_ms, physics_ms]
+
+
+func _build_perf_overlay() -> void:
+	var canvas: CanvasLayer = CanvasLayer.new()
+	add_child(canvas)
+	_perf_label = Label.new()
+	_perf_label.position = Vector2(24, 24)
+	_perf_label.add_theme_font_size_override(&"font_size", 28)
+	_perf_label.add_theme_color_override(&"font_color", Palette.WHITE)
+	canvas.add_child(_perf_label)
+
+
+func _apply_depth_debug_material() -> void:
+	var shader: Shader = Shader.new()
+	shader.code = DEPTH_DEBUG_SHADER_CODE
+	var shader_material: ShaderMaterial = ShaderMaterial.new()
+	shader_material.shader = shader
+	_ground_mesh.material_override = shader_material
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -129,6 +183,7 @@ func _build_ground() -> void:
 	material_override.albedo_color = Palette.TERRAIN
 	mesh_instance.material_override = material_override
 	_ground.add_child(mesh_instance)
+	_ground_mesh = mesh_instance
 
 	var collision: CollisionShape3D = CollisionShape3D.new()
 	var box_shape: BoxShape3D = BoxShape3D.new()

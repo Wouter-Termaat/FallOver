@@ -1,7 +1,7 @@
 # Fall Over — Backlog
 
 **Companion to:** `PRD.md` — read that first; it holds the decisions this backlog implements.
-**Last updated:** 2026-07-25 · **Matches PRD:** v0.14
+**Last updated:** 2026-07-25 · **Matches PRD:** v0.15
 
 ---
 
@@ -1041,7 +1041,10 @@ slots on it, and play it.
 **Acceptance criteria:**
 
 - A `KitPiece` resource defining: display name, mesh reference (optional, empty for grey-box), **authored
-  collision shape**, and snap footprint on a consistent grid
+  collision shape**, snap footprint on a consistent grid, and a **material slot the theme overrides**
+- **One mesh per piece, forever** (PRD §7.11.1). Themes change only the *material* on terrain — grass, sand, snow
+  and rock are the same slope with different colours and textures. Collision therefore cannot drift between
+  themes, because it's literally the same object. Do not add per-theme terrain meshes.
 - **Collision is authored on the piece, never derived from the mesh** (PRD §7.11). A piece with no mesh yet
   still has full, correct collision.
 - Pieces snap to a shared grid so islands assemble without gaps or overlaps. Grid size documented.
@@ -1077,14 +1080,22 @@ project and the only part nobody else can do. Prioritise getting it usable over 
 
 **Acceptance criteria:**
 
-- An `ObstacleSlot` resource defining: slot name, **authored collision shape**, and footprint
+- An `ObstacleSlot` resource defining: slot name, **authored collision shape**, footprint, **and a stated visual
+  volume every theme's model must fill** (PRD §7.11.2)
+- **⚠️ The volume budget is not optional.** Obstacle meshes *do* differ per theme — a pine tree must not look like
+  a cactus. But if one theme's model is visibly smaller than the slot, the chain stops dead short of it and looks
+  broken while the physics is entirely correct, which is a baffling bug to diagnose. Document the volume next to
+  the collision shape, and check every new theme model against it. A model that can't fill the volume needs a
+  different slot, not a shrunken box.
 - A `ThemeKit` resource mapping each slot name to a model, owned by a **world**, not a level
 - Starting slots: tall obstacle · low obstacle · wide barrier · bridge · hazard surface · prop
 - **Collision comes from the slot in every theme.** Verify explicitly: swap a level's theme and confirm every
   collision shape is byte-identical. If it isn't, tuned levels will silently break — this is the single most
   important check in the story.
-- With no theme kit assigned, slots render as grey-box primitives in palette colours, so levels are fully
-  designable and playable before any art exists
+- **With no theme assigned, both slots and terrain render as grey-box shapes in brand palette colours**
+  (PRD §7.11.3) — unmistakably work in progress. Grass is a theme you *assign*, not the fallback. This keeps
+  design and art separate: a level can be built, tuned and fragility-tested before any art exists, which is the
+  whole point of the slot system.
 - One grey-box theme kit and one stub second kit, to prove the swap works end to end
 - `docs/slots.md` documents the vocabulary and the mapping format
 
@@ -1529,7 +1540,10 @@ and would require adding hints or a skip in the same change.
 - **[ ] FO-072 — Replace kit and slot placeholders with real art · L** — because collision lives on the piece
   and the slot (PRD §7.11), this swaps art without disturbing a single tuned level. **Verify that claim
   explicitly** by re-running FO-036's fragility tests after the swap.
-- **[ ] FO-073 — Theme kits for Grass and Desert · L** — one model per slot per theme (PRD §7.11).
+- **[ ] FO-073 — Theme kits for Grass and Desert · L** — PRD §7.11.1. **Terrain needs only materials** (same
+  meshes, different colour and texture), so this is much cheaper than it sounds. **Obstacles need one model per
+  slot per theme**, and each must fill the slot's stated visual volume (PRD §7.11.2) — check them against it
+  before shipping, or chains will stop short of things and look broken.
 - **[ ] FO-074 — Block visuals · M** — plain coloured blocks, no pips (PRD §8.1). Must read at every zoom.
 - **[ ] FO-075 — Colour accessibility · S** — PRD §8.7, open #23. **Decide here**, because the cheapest fix is
   making the starter and finish differ in *silhouette*, and that's free while the art is being made rather than

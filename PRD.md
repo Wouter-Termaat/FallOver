@@ -1,6 +1,6 @@
 # Fall Over — Product Requirements Document
 
-**Version:** 0.14
+**Version:** 0.15
 **Last updated:** 2026-07-24
 **Owner:** Wouter Termaat
 **Status:** Pre-production. Items marked 🔓 are unresolved and are Wouter's call — see §16.
@@ -12,6 +12,11 @@ categories. Added undo/redo, mid-level resume, and haptics. Blocks cannot be sta
 past launch**, which changes the launch meta-screen set. **Level select now uses a rolling reveal
 window** (§7.7) — this replaced one-at-a-time reveal after §5.3.1 showed the main route was otherwise a
 hard wall for stuck players.
+
+**Changes since v0.14:** Theming specified precisely (§7.11.1–7.11.3). **Terrain: same mesh, material swap
+only** — five worlds of terrain for the price of one. **Obstacles: different mesh, fixed collision**, and a slot
+is therefore a **volume budget** every theme's model must fill (§7.11.2) or chains stop short of things and look
+broken. Unthemed levels render as grey-box, so Grass is a theme you assign rather than a fallback.
 
 **Changes since v0.13:** **Run camera clarified** (§6.3): the game owns position and framing, the player owns
 rotation — continuously, with no hand-off or resume timer. Rotation is free and unsnapped during a run; panning
@@ -1069,6 +1074,48 @@ rather than let it through.
 every puzzle idea planned for worlds 1 and 2. Grow the list on demand only.
 
 The *models* each theme maps them to are Phase 5 art work; the table above is illustrative.
+
+#### 7.11.1 What a theme actually changes
+
+Two different rules, because terrain and obstacles behave differently.
+
+**Terrain kit pieces: same mesh, material only.** A slope is one mesh, forever. Grass, sand, snow and rock are
+different *materials* on that identical mesh. Collision is guaranteed identical because it is literally the same
+object — there is no way to get it wrong. A new world's terrain is a handful of materials, not a set of models.
+
+The trade-off, accepted: shape never varies. Sand won't have wind ripples and snow won't have drifts. Colour,
+texture and the cel-shading bands carry the whole difference. For a stylised low-poly game viewed
+orthographically at diorama scale, that is enough — and it means five worlds of terrain cost roughly what one
+world of terrain would otherwise.
+
+**Obstacle slots: different mesh, same collision.** Here the mesh *must* differ — a pine tree that looks like a
+cactus defeats the point. So each theme supplies its own model for each slot, and the collision shape stays fixed
+on the slot.
+
+#### 7.11.2 ⚠️ A slot is a volume budget, not just a collision shape
+
+This is the practical rule that makes obstacle theming work, and the one most likely to be discovered too late.
+
+Because collision is fixed but models vary, **every theme's model for a slot must fill roughly the same visual
+volume.** If the desert's cactus is noticeably smaller than the forest's pine tree:
+
+- the chain stops dead a few centimetres short of the cactus and looks broken
+- the physics is entirely correct, which makes the bug baffling to diagnose
+
+And if a model is larger than the slot, the chain visibly passes through its edges.
+
+So a slot definition carries three things, not two: a name, a collision shape, **and a stated visual volume every
+theme must fill**. Document the volume alongside the collision shape, and check new theme models against it before
+they ship. A model that can't fill the volume needs a different slot, not a smaller box.
+
+#### 7.11.3 No theme assigned
+
+A level with no theme renders as **grey-box shapes in brand palette colours** (§8.3) — unmistakably a work in
+progress.
+
+Grass is a real theme you assign, not the fallback. This keeps design and art properly separate: a level can be
+built, tuned and fragility-tested with no art in existence, which is the main reason for building the system this
+way (§7.11). It also means an unthemed level is visibly unthemed, rather than silently looking finished.
 
 **⚠️ The one absolute rule: collision belongs to the slot, never to the art.**
 
