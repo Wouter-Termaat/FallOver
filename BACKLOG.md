@@ -110,7 +110,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 
 ### Phase 1.5 — Level authoring foundations (2)
 
-- [ ] **FO-030** · M · Modular kit piece system ⭐ *unblocks level design*
+- [x] **FO-030** · M · Modular kit piece system ⭐ *unblocks level design*
 - [ ] **FO-031** · M · Obstacle slots and theme kits
 
 ### Phase 2 — A complete level (12)
@@ -1186,7 +1186,7 @@ slots on it, and play it.
 
 ---
 
-### [ ] FO-030 — Modular kit piece system · M
+### [x] FO-030 — Modular kit piece system · M
 
 **Goal:** PRD §7.10.1 — islands assembled from snapping pieces, not sculpted.
 
@@ -1223,6 +1223,13 @@ designed needs a piece that doesn't exist.
 
 **This is the story that unblocks Wouter.** Once it lands he can design levels, which is the slowest work in the
 project and the only part nobody else can do. Prioritise getting it usable over getting it elegant.
+
+**Findings:** One generic `@tool` scene (`scenes/kit/kit_piece.tscn`) rather than six separate scenes/scripts
+— assign any `KitPiece` resource to its `piece` property and it builds mesh+collision itself, visible live in
+the editor without pressing Play (matters for actual authoring speed). All six pieces verified headless:
+correct collision layer per surface tag, Gap correctly has no collision and no visible mesh. Only builds
+axis-aligned boxes (optionally Z-tilted for slopes) — noted as a limitation in `docs/kit-pieces.md` for
+whenever a level needs a shape that isn't a box.
 
 ---
 

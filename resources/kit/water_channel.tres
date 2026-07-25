@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="KitPiece" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/kit_piece.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Water Channel"
+footprint = Vector2(8, 8)
+height = 1.0
+surface_tag = 1
+grey_box_color = Color(0.458824, 0.694118, 0.796078, 1)
+slope_degrees = 0.0
