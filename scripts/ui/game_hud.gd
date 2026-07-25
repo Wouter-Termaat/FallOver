@@ -14,6 +14,7 @@ extends Control
 @onready var _redo_button: Button = $BuildRow/RedoButton
 @onready var _clear_all_button: Button = $BuildRow/ClearAllButton
 @onready var _clear_all_confirm: ConfirmationDialog = $ClearAllConfirm
+@onready var _coin_label: Label = $CoinLabel
 
 
 func _ready() -> void:
@@ -27,8 +28,14 @@ func _ready() -> void:
 	run_controller.run_started.connect(_on_run_state_changed)
 	run_controller.run_ended.connect(_on_run_ended)
 	CommandHistory.changed.connect(_update_undo_redo_buttons)
+	CoinBudget.changed.connect(_update_coin_label)
 	_update_buttons()
 	_update_undo_redo_buttons()
+	_update_coin_label()
+
+
+func _update_coin_label() -> void:
+	_coin_label.text = "Coins: %d" % CoinBudget.remaining
 
 
 func _on_start_pressed() -> void:

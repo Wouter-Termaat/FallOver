@@ -197,7 +197,8 @@ func _update_ghost(screen_pos: Vector2) -> void:
 	var candidate_transform: Transform3D = Transform3D(_ghost.transform.basis, snapped)
 	_ghost.global_transform = candidate_transform
 	var overlapping: bool = _check_overlap(candidate_transform)
-	_ghost_valid = ((layer & GROUND_LAYER) != 0) and not overlapping
+	var affordable: bool = _editing_existing or CoinBudget.can_afford(_definition.coin_price)
+	_ghost_valid = ((layer & GROUND_LAYER) != 0) and not overlapping and affordable
 	material.albedo_color = Color(_definition.palette_color if _ghost_valid else Palette.INVALID_PLACEMENT, 0.6)
 
 

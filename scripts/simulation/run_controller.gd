@@ -27,6 +27,11 @@ signal run_ended(last_live_body: Node)
 @export var no_progress_seconds: float = 3.0
 @export var live_contact_force_threshold: float = 1.0
 
+## FO-021: until a scene actually loads through LevelLoader (which reads
+## LevelDefinition.coin_amount directly), this grey-box scene needs its own
+## starting amount to initialize CoinBudget.
+@export var starting_coin_amount: int = 20
+
 @export_group("Lost blocks")
 @export var lost_block_y: float = -8.0
 
@@ -45,6 +50,7 @@ var _starter_original_transform: Transform3D
 func _ready() -> void:
 	set_physics_process(false)
 	_starter_original_transform = starter.transform
+	CoinBudget.load_level(starting_coin_amount)
 
 
 func start_run() -> void:

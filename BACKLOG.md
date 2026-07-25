@@ -116,7 +116,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 ### Phase 2 — A complete level (12)
 
 - [x] **FO-020** · M · Level and world definition resources
-- [ ] **FO-021** · M · Coins — the level constraint
+- [x] **FO-021** · M · Coins — the level constraint
 - [ ] **FO-023** · M · Finish, win detection and fail state
 - [ ] **FO-025** · M · Opening fly-through
 - [ ] **FO-027** · M · Save system
@@ -1348,7 +1348,7 @@ FO-031's theme-swap test already proved (the loader just passes `world.theme_kit
 
 ---
 
-### [ ] FO-021 — Coins: the level constraint · M
+### [x] FO-021 — Coins: the level constraint · M
 
 **Goal:** PRD §4.6. Note the terminology rules at the top of this document.
 
@@ -1371,6 +1371,16 @@ FO-031's theme-swap test already proved (the loader just passes `world.theme_kit
 **Files:** `scripts/economy/coin_budget.gd`, `scripts/ui/game_hud.gd`, `scripts/ui/block_palette.gd`
 
 **Blocked by:** FO-020, FO-014, FO-015 (the HUD hosting the coin display), FO-017, FO-018.
+
+**Findings:** `CoinBudget` is an autoload, spend/refund tied directly into `PlacementCommand.do()`/`undo()`
+(and transitively `SellCommand`/`ClearAllCommand`, which delegate to it) — there's no separate coin-tracking
+code path to keep in sync with undo/redo, which is exactly what the "byte-identical after 20 mixed actions"
+criterion is really checking. Unaffordable placements are rejected the same way water/overlap is (red ghost,
+`_ghost_valid = false`), reusing FO-013's existing validity mechanism rather than a new one. Verified
+headless: a mixed place/sell/place sequence keeps the running total exact at every step, and undo-all then
+redo-all returns to the exact same total. `starting_coin_amount` is a placeholder export on
+`RunController` for the current hand-built grey-box scene — once something actually loads via
+`LevelLoader`, it should read `level.coin_amount` instead. Not tested on-device.
 
 ---
 

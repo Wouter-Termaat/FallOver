@@ -34,6 +34,7 @@ func do() -> void:
 	if not _registered:
 		BuildState.register(self)
 		_registered = true
+		CoinBudget.spend(_definition.coin_price)
 
 
 func undo() -> void:
@@ -41,6 +42,7 @@ func undo() -> void:
 		if _registered:
 			BuildState.unregister(self)
 			_registered = false
+			CoinBudget.refund(_definition.coin_price)
 		_body.visible = false
 		_body.collision_layer = 0
 		_body.freeze = true

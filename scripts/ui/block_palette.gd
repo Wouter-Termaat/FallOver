@@ -36,7 +36,7 @@ func _apply_safe_area_margin() -> void:
 
 func _add_button_for(definition: BlockDefinition) -> void:
 	var button: Button = Button.new()
-	button.text = definition.display_name
+	button.text = "%s\n%d coins" % [definition.display_name, definition.coin_price]
 	button.custom_minimum_size = Vector2(140, 88)
 	button.toggle_mode = true
 	button.add_theme_color_override(&"font_color", Palette.WHITE)
