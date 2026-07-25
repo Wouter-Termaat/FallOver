@@ -1,7 +1,8 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/camera_rig.tscn" id="1_camera_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/block_palette.tscn" id="2_block_palette"]
+[ext_resource type="Script" path="res://scripts/placement/placement_controller.gd" id="3_placement_controller"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_Ground"]
 albedo_color = Color(0.509804, 0.729412, 0.380392, 1)
@@ -118,3 +119,8 @@ surface_material_override/0 = SubResource("Mat_Finish")
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="BlockPalette" parent="UI" instance=ExtResource("2_block_palette")]
+
+[node name="PlacementController" type="Node3D" parent="." node_paths=PackedStringArray("camera_rig", "palette")]
+script = ExtResource("3_placement_controller")
+camera_rig = NodePath("../CameraRig")
+palette = NodePath("../UI/BlockPalette")

@@ -101,7 +101,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-010** · S · Block definition resource
 - [ ] **FO-011** · M · Camera rig — orbit, pan, zoom, 45° snap
 - [x] **FO-012** · S · Block palette UI
-- [ ] **FO-013** · L · Selection-driven placement input ⚠️ *highest risk in the project*
+- [x] **FO-013** · L · Selection-driven placement input ⚠️ *highest risk in the project*
 - [ ] **FO-014** · M · Edit and remove placed blocks
 - [ ] **FO-015** · L · Run the simulation with a zoom-to-fit camera ⚠️ *biggest "feels cheap" risk*
 - [ ] **FO-017** · M · Undo and redo history
@@ -868,7 +868,7 @@ select/deselect, full screen confirmed. Revisit real safe-area handling in Phase
 
 ---
 
-### [ ] FO-013 — Selection-driven placement input · L
+### [x] FO-013 — Selection-driven placement input · L
 
 **Goal:** implement PRD §6.1 — the core interaction of the entire game.
 
@@ -915,6 +915,11 @@ select/deselect, full screen confirmed. Revisit real safe-area handling in Phase
 
 **This is still the highest-risk story in the project.** Continuous rotation on a touchscreen is hard to make
 feel good, and no amount of correct code substitutes for iteration on a real phone. Budget several passes.
+
+**Findings:** Verified on-device — ghost preview, position/rotate two-step, edge-pan, water/overlap
+rejection all confirmed working on first pass. Camera orbit still feels a bit sensitive per Wouter —
+deferred, revisit in a later feel pass. Ghost built in code, not a separate `block_ghost.tscn` (simpler,
+consistent with how FO-003's test scene builds things).
 
 ---
 

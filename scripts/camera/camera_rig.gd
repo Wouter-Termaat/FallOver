@@ -39,6 +39,10 @@ extends Node3D
 @export var mouse_orbit_sensitivity: float = 0.003
 @export var scroll_zoom_step: float = 2.0
 
+## FO-013 disables the rig's own gestures while a block is selected — while
+## placing, all touch input is placement, per PRD §6.1's single clean rule.
+@export var input_enabled: bool = true
+
 const CAMERA_DISTANCE: float = 40.0
 
 @onready var _camera: Camera3D = $Camera3D
@@ -74,6 +78,10 @@ func _ready() -> void:
 	_camera.size = _current_size
 	_read_bounds()
 	_update_camera_transform()
+
+
+func get_camera() -> Camera3D:
+	return _camera
 
 
 func _read_bounds() -> void:
@@ -119,6 +127,8 @@ func _update_camera_transform() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not input_enabled:
+		return
 	if event is InputEventScreenTouch:
 		_on_screen_touch(event)
 	elif event is InputEventScreenDrag:
@@ -205,6 +215,15 @@ func _apply_pan_delta(relative: Vector2) -> void:
 	var right: Vector3 = Vector3(cos(_current_yaw), 0.0, -sin(_current_yaw))
 	var delta_world: Vector3 = -right * relative.x * pan_sensitivity
 	var new_focus: Vector3 = _target_focus + delta_world
+	new_focus.x = clamp(new_focus.x, _bounds_min.x, _bounds_max.x)
+	new_focus.z = clamp(new_focus.z, _bounds_min.y, _bounds_max.y)
+	_target_focus = new_focus
+
+
+## FO-013's edge-pan while a block is held — world-space, not screen-relative,
+## since placement drags a ghost, not the camera.
+func nudge_focus_world(delta: Vector3) -> void:
+	var new_focus: Vector3 = _target_focus + delta
 	new_focus.x = clamp(new_focus.x, _bounds_min.x, _bounds_max.x)
 	new_focus.z = clamp(new_focus.z, _bounds_min.y, _bounds_max.y)
 	_target_focus = new_focus
