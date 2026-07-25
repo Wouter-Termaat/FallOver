@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Fall Over"
 config/description="A 3D mobile puzzle game about building domino chains. See PRD.md."
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/levels/greybox_island.tscn"
 config/features=PackedStringArray("4.7")
 
 [display]

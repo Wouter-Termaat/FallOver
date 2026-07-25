@@ -100,7 +100,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-009** · M · Grey-box island scene
 - [x] **FO-010** · S · Block definition resource
 - [ ] **FO-011** · M · Camera rig — orbit, pan, zoom, 45° snap
-- [ ] **FO-012** · S · Block palette UI
+- [x] **FO-012** · S · Block palette UI
 - [ ] **FO-013** · L · Selection-driven placement input ⚠️ *highest risk in the project*
 - [ ] **FO-014** · M · Edit and remove placed blocks
 - [ ] **FO-015** · L · Run the simulation with a zoom-to-fit camera ⚠️ *biggest "feels cheap" risk*
@@ -832,7 +832,7 @@ real iteration time and expect several rounds.
 
 ---
 
-### [ ] FO-012 — Block palette UI · S
+### [x] FO-012 — Block palette UI · S
 
 **Goal:** the bottom-of-screen buttons from the prototype, and the selection state driving the whole
 control scheme.
@@ -860,6 +860,11 @@ control scheme.
 
 Build both. The redundancy is the point — toggle-off alone is undiscoverable, and a player who can't work out how
 to back out quits rather than experiments.
+
+**Findings:** Buttons generated from an exported `Array[BlockDefinition]`, not hardcoded per type.
+`DisplayServer.get_display_safe_area()` produced a bad value on-device that crushed the whole layout —
+replaced with a fixed bottom margin instead of chasing the API further. Verified on-device: buttons
+select/deselect, full screen confirmed. Revisit real safe-area handling in Phase 4 UI work.
 
 ---
 
