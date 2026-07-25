@@ -1,7 +1,7 @@
 # Fall Over — Backlog
 
 **Companion to:** `PRD.md` — read that first; it holds the decisions this backlog implements.
-**Last updated:** 2026-07-25 · **Matches PRD:** v0.10
+**Last updated:** 2026-07-25 · **Matches PRD:** v0.14
 
 ---
 
@@ -89,7 +89,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-002** · S · Configure physics for reliability
 - [x] **FO-003** · M · Grey-box test scene with a falling domino chain
 - [x] **FO-008** · M · Determine the unit scale
-- [ ] **FO-019** · M · Scale gravity for diorama physics ⚠️ *before FO-004 and FO-005*
+- [x] **FO-019** · M · Scale gravity for diorama physics ⚠️ *before FO-004 and FO-005* — jitter carried to FO-004
 - [ ] **FO-006** · M · Android export pipeline
 - [ ] **FO-007** · S · Renderer and min-API decisions
 - [ ] **FO-004** · M · Choose the physics backend by measurement
@@ -157,7 +157,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [ ] **FO-037** · L · In-game authoring mode *(only after ~5 levels exist)*
 - [ ] **FO-060** · M · Difficulty curve pass
 
-### Phase 5 — Art, audio and haptics (14)
+### Phase 5 — Art, audio and haptics (17)
 
 - [ ] **FO-070** · M · Source the modular kit
 - [ ] **FO-071** · M · Model and material import pipeline
@@ -172,10 +172,14 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [ ] **FO-080** · S · Music and run-time ducking
 - [ ] **FO-081** · S · Ambient sound
 - [ ] **FO-082** · S · Haptics
+- [ ] **FO-084** · M · Banded cel shader ⚠️ *shadows must survive it*
+- [ ] **FO-085** · M · Water: flat colour plus foam shoreline
+- [ ] **FO-086** · S · Chest opening animation ⭐ *the payoff moment*
 - [ ] **FO-083** · M · Particles and juice on the run
 
-### Phase 6 — Content (9)
+### Phase 6 — Content (10)
 
+- [ ] **FO-089** · S · Keep every launch level compact and fully visible
 - [ ] **FO-090** · S · Distribute the four launch mechanics across the two worlds
 - [ ] **FO-091** · XL · Author 20 levels ⭐ *the slowest work in the project*
 - [ ] **FO-092** · M · Balance coin budgets and star thresholds
@@ -203,7 +207,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [ ] **FO-112** · L · Initial skin sets
 - [ ] **FO-113** · S · Activate collection achievements
 
-**Total: 91 stories.** FO-022 (inventory levels) was cut when coins became the only constraint model. Phases 0–2 are fully specified with acceptance criteria and file lists. Phases 3–8 are
+**Total: 94 stories.** FO-022 (inventory levels) was cut when coins became the only constraint model. Phases 0–2 are fully specified with acceptance criteria and file lists. Phases 3–8 are
 one-line placeholders — each gets detailed before it's worked, not now, because the game will have changed by
 then.
 
@@ -445,7 +449,7 @@ changing it after twenty levels exist is not.
 
 ---
 
-### [ ] FO-019 — Scale gravity for diorama physics · M
+### [x] FO-019 — Scale gravity for diorama physics · M
 
 **Goal:** PRD §4.4.1. Blocks are authored 10× larger than the real objects they represent, so gravity must be
 10× stronger for them to fall at the rate the eye expects. Right now they fall ~3× too slowly — the "a bit slow"
@@ -472,6 +476,34 @@ verdict from Wouter's FO-003 playtest.
 
 **⚠️ Must complete before FO-004 and FO-005.** Those two measure backend stability and the maximum active-body
 count. Measured at 9.8 they produce numbers that are simply wrong for the shipping game.
+
+**Findings (FO-019):**
+
+- **`default_gravity` set to 98** in `project.godot` (path `physics/3d/default_gravity`, verified against the
+  installed 4.7.1 binary; default is 9.8).
+- **Wouter confirmed on a live playtest, immediately after the change: fall speed now reads correctly.**
+  This criterion is met.
+- **Damping re-tuned from scratch, not scaled arithmetically**, as required. The FO-003 values (linear 0.1 /
+  angular 0.3, tuned at gravity 9.8) left blocks sliding at ~1 m/s and never settling at gravity 98. Current
+  values: `friction = 2.0`, `linear_damp = 0.5`, `angular_damp = 2.0`.
+- **⚠️ One acceptance criterion is not fully met: "nothing jitters, everything comes to rest."** With the
+  current values, most of the chain settles cleanly, but consistently one block in the fallen pile (which
+  block varies with the exact damping/friction values, not with re-running — the sim is deterministic, no
+  randomness per PRD §13.1) is left oscillating with real velocity (~1 m/s) indefinitely, never crossing
+  Godot's sleep threshold.
+- **This was not solved by more damping/friction.** Pushing friction to 3.0 and damping higher made it
+  *worse* — 8 of 15 blocks unstable instead of 1. That non-monotonic response is itself informative: this
+  reads as a genuine solver-stability issue with body-on-body resting contact (fallen dominoes end up
+  leaning on each other, not just resting on the static ground), not a case of "needs more damping."
+  Stopped hunting for a value that fixes it rather than keep guessing — same principle as the tick-rate
+  instruction above: report, don't silently paper over.
+- **Recommend revisiting at FO-004 (physics backend choice).** Godot's own docs recommend Jolt specifically
+  for stacked/resting-body stability (PRD §13.1) — this jitter is exactly that scenario. Worth testing
+  whether Jolt resolves it before spending more time tuning GodotPhysics3D parameters.
+- No tunneling observed: the fully-flat block (the last in the chain) settles at y≈0.24, matching its
+  resting height for its own thickness; nothing goes below ground across repeated runs.
+- 60 ticks/second was not implicated — the issue looks like contact resolution, not step-rate starvation.
+  Not touched, per the story's instruction.
 
 ---
 
@@ -511,8 +543,10 @@ instructions, then wait for confirmation at each step rather than assuming succe
 
 **Acceptance criteria:**
 
-- FO-003 tested under both Mobile and Forward+ renderers on device; visual and performance differences
-  noted
+- FO-003 tested under both Mobile and Forward+ renderers on device; visual and performance differences noted
+- **Also test depth-texture access on both.** The water foam shoreline (PRD §8.3.2) needs scene depth, which is
+  more constrained on Mobile than Forward+. This decision is no longer just about frame rate — if Mobile can't
+  do the foam, that's a real cost to weigh, and the fallback is baking a foam band into terrain geometry.
 - Recommendation recorded, and the chosen renderer set in `project.godot`
 - Minimum Android API level chosen, set, and the reasoning written down (what share of devices it
   excludes)
@@ -548,6 +582,11 @@ are recorded
 **Blocked by:** FO-003, FO-008, FO-006.
 
 **Note:** do not work in parallel with FO-005 — both touch `scripts/test/domino_chain_test.gd`.
+
+**Carried over from FO-019:** at gravity 98 under GodotPhysics3D, one block in the fallen pile reliably
+never settles — real velocity (~1 m/s), indefinitely, not fixed by more damping/friction (see FO-019
+findings). Specifically check whether Jolt resolves this before recommending GodotPhysics3D by default —
+this is exactly the stacked/resting-body scenario Jolt is documented to help with.
 
 ---
 
@@ -603,6 +642,8 @@ surface to raycast against plus water and edges to reject placements on.
 
 **Acceptance criteria:**
 
+- **Compact footprint, fully visible at the default zoom** (PRD §7.9.1) — the player should never need to pan to
+  understand the layout. Interest comes from **elevation**, not area.
 - A grey-box island from primitives: flat main area, at least one raised/sloped section, **a water plane
   surrounding it** (PRD §8.1 — islands sit in ocean), and a gap or channel needing a bridge — covering three
   of the four world 1–2 mechanics in PRD §7.3
@@ -680,8 +721,13 @@ balancing, icons (grey-box uses text labels).
 - Two-finger pan and pinch must coexist without fighting — a drifting pinch must not become an unwanted
   pan, or vice versa. Needs a deliberate rule (e.g. dominant-gesture detection on gesture start); state
   the rule chosen in a comment.
-- Zoom has min and max orthographic-size limits; orbit has a pitch limit so the camera can't go under
-  terrain
+- Zoom has min and max orthographic-size limits; orbit has a pitch limit so the camera can't go under terrain
+- **Tune the default orthographic size so a compact island fits entirely on screen** (PRD §7.9.1), accounting for
+  the palette along the bottom and coins along the top — usable area is ~1080×1400, not the full 1920. Record the
+  resulting footprint limit in Godot units; that answers **PRD open #39** and becomes the budget every level is
+  designed within.
+- **Build the bounds and zoom limits for the general case, not just compact islands.** Worlds 3+ are planned to
+  be larger (PRD §7.9.1). Hard-coding for small islands means reworking this after levels exist.
 - Focus point constrained to FO-009's bounds volume
 - Movement smoothed and damped — no jitter, no abrupt stops
 - All sensitivity, damping and limit values exported and tunable
@@ -873,16 +919,23 @@ undoing thirty placements one at a time.
   freezing bodies before the run. FO-016 then uses it to restore; FO-029 reuses it for mid-build save. Build
   it here because the freeze half is needed for the run to start correctly.
 - All blocks are frozen before the run and become simulated when it begins
-- **The camera widens (grows orthographic size) to fit all active chains**, so nothing important happens
-  off-screen
+- **The camera owns position and framing; the player owns rotation** (PRD §6.3). No hand-off, no resume timer —
+  they control different things continuously. Panning and zooming are *not* available during a run.
+- **Target the aggregate of still-moving live bodies, not a single block** (PRD §6.3.1). Each physics tick:
+  collect live bodies (the flag from FO-023) above a velocity threshold, compute their bounding box, aim at its
+  centre, size the view to fit, and damp both. **Only moving bodies count** — including settled ones drags the
+  camera back toward the start as the fallen tail accumulates.
+- **Do not chase the newest live block.** It jitters when several activate in one tick, lurches backwards when a
+  domino knocks something behind it, and ping-pongs once branching exists. Framing a box solves all three with no
+  special cases.
+- **The camera widens (grows orthographic size) to fit that box**, so nothing important happens off-screen
 - **A maximum orthographic size clamp** — never widen far enough that blocks become unreadable specks. If
   the action genuinely can't fit, prioritise the main chain.
 - **Only widen when needed** — a single-chain run keeps the close, exciting shot. Widening happens only
   with genuinely multiple active fronts. *In Phase 1 there is only ever one front; build the fit logic so
   branching (Phase 3) doesn't require rewriting it.*
-- **Rotation does not snap during the run** (PRD §6.3) — hold whichever of the eight angles the player left
-  it at and change only the framing. Re-orienting mid-collapse is disorienting.
-- The player may take over the camera mid-run; auto-behaviour resumes after a short pause with no input
+- **Rotation is free and unsnapped during a run**, unlike the build phase. The run starts at whatever angle the
+  build phase ended on, and the camera never reorients itself — re-aiming mid-collapse is disorienting.
 - **Run-end detection, all three mechanisms** (PRD §4.9.2):
   1. Damping tuned in FO-003 so motion decays naturally
   2. **Settle detection** — nothing has exceeded a small velocity threshold for N consecutive ticks
@@ -1125,6 +1178,9 @@ Plus:
   resting against the chest does not win, (b) a block that topples on its own while the layout settles does not
   win.
 - Fail fires when the run settles without a live body hitting the chest
+- **Win sequencing** (PRD §4.2.2): chest hit → chest opens → **brief hold on the settled chain** → win screen.
+  Don't cut straight to UI over the top of the moment. The opening animation is Phase 5 (FO-086); here, leave the
+  timing gap and a hook rather than snapping instantly to the win screen.
 - On fail, the break point is made obvious — highlight the last block that fell, rest the camera there
   (PRD §4.10)
 - Win and fail evaluated in `_physics_process`
@@ -1194,6 +1250,8 @@ mid-build (FO-029), where it is suppressed.
 **Acceptance criteria:**
 
 - Win screen: stars earned (1–3), coins left, continue and replay
+- **Reserve a disabled slot for a share button** (PRD §5.11, §13.5). Sharing is deferred, but leaving the space
+  means adding it later isn't a redesign. Lay the screen out as if it were there.
 - Fail screen, or an unobtrusive in-place prompt: retry, keeping the layout (PRD §4.10)
 - Retry from either is free and preserves the layout
 - Brand palette and Roboto throughout
@@ -1415,6 +1473,9 @@ and would require adding hints or a skip in the same change.
 
 - **[ ] FO-058 — Settings screen · S** — audio, **haptics toggle**, graphics, tutorial progress, reset progress.
 - **[ ] FO-059 — Tutorial prompts on level 1-1 · M** — guided walkthrough with explicit prompts (PRD §7.8).
+  **Must teach the rotation gesture explicitly** — "place, then swipe sideways to spin" is not discoverable, and
+  with no hints (PRD §7.9) and no analytics (PRD §12), a player who misses it is stuck on the game's core verb
+  with no way to recover. See also open #40: the fallback is making an early level *require* rotation.
   **Needs PRD open #21** for whether later mechanics get first-time prompts too.
 - **[ ] FO-035 — Level authoring workflow documented · M** — end to end: assemble an island from kit pieces,
   place obstacle slots, set the starter and finish, record a reference solution, derive thresholds, validate.
@@ -1468,6 +1529,16 @@ and would require adding hints or a skip in the same change.
 - **[ ] FO-081 — Ambient sound · S** — water, wind, birds. Optional but high value for the money (PRD §10).
 - **[ ] FO-082 — Haptics · S** — PRD §6.5. Subtle vibration on impacts and UI, driven by the same force value as
   the audio. Settings toggle required (FO-058).
+- **[ ] FO-084 — Banded cel shader · M** — PRD §8.3.1. One spatial shader reused across everything, quantising
+  light into 2–3 bands. **⚠️ Ground-contact shadows must survive it.** Verify on device that a block resting on the
+  ground still reads differently from one hovering above it — that's the only depth cue orthographic gives (PRD
+  §8.1). **No outlines** — declined; don't add them without a reason.
+- **[ ] FO-085 — Water: flat colour plus foam shoreline · M** — PRD §8.3.2. Opaque, no transparency, no waves.
+  The foam band is the whole effect and it doubles as a warning that the island edge is dangerous. Needs depth
+  access — check FO-007's finding first; fall back to foam baked into terrain edge geometry if Mobile can't do it.
+- **[ ] FO-086 — Chest opening animation · S** — PRD §4.2.2. Lid flies up, light or coins spill, satisfying
+  sound. **This is the emotional peak of the entire game loop, and it's a few seconds of animation.** Highest
+  return per hour in this phase after the impact sounds. Do not let it slip to the end. Pairs with FO-079.
 - **[ ] FO-083 — Particles and juice on the run · M** — dust on impact, a flourish on the win. Last, and only
   once everything above reads correctly.
 
@@ -1481,6 +1552,10 @@ and would require adding hints or a skip in the same change.
 **Goal:** 20 levels across Grass and Desert (PRD §7.3). **This is the slowest work in the project and the part
 only Wouter can do.**
 
+- **[ ] FO-089 — Keep every launch level compact and fully visible · S** — PRD §7.9.1. Get vertical interest from
+  cliffs, tiers and platforms rather than from a big footprint. A chain tumbling down two tiers to a chest at the
+  shoreline uses the portrait screen far better than one crossing a flat field. Also **consider making an early
+  level require rotation** (open #40), as insurance against a skipped tutorial prompt.
 - **[ ] FO-090 — Distribute the four launch mechanics across the two worlds · S** — **needs PRD open #17**, and
   decide where branching enters.
 - **[ ] FO-091 — Author 20 levels · XL** — each with a **recorded** reference solution (FO-032) passing at the

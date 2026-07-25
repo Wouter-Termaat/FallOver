@@ -24,10 +24,10 @@ extends Node3D
 
 @export_group("Physics — starting point, tune by feel on device (PRD open #31)")
 @export var block_mass: float = 1.0
-@export var friction: float = 1.0
+@export var friction: float = 2.0
 @export var restitution: float = 0.0
-@export var linear_damp: float = 0.1
-@export var angular_damp: float = 0.3
+@export var linear_damp: float = 0.5
+@export var angular_damp: float = 2.0
 
 @export_group("Impulse")
 @export var impulse_strength: float = 5.0

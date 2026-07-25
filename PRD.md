@@ -1,6 +1,6 @@
 # Fall Over — Product Requirements Document
 
-**Version:** 0.10
+**Version:** 0.14
 **Last updated:** 2026-07-24
 **Owner:** Wouter Termaat
 **Status:** Pre-production. Items marked 🔓 are unresolved and are Wouter's call — see §16.
@@ -12,6 +12,25 @@ categories. Added undo/redo, mid-level resume, and haptics. Blocks cannot be sta
 past launch**, which changes the launch meta-screen set. **Level select now uses a rolling reveal
 window** (§7.7) — this replaced one-at-a-time reveal after §5.3.1 showed the main route was otherwise a
 hard wall for stuck players.
+
+**Changes since v0.13:** **Run camera clarified** (§6.3): the game owns position and framing, the player owns
+rotation — continuously, with no hand-off or resume timer. Rotation is free and unsnapped during a run; panning
+and zooming are not available. Added §6.3.1: the camera frames the **aggregate of still-moving live bodies**, not
+the newest one, which avoids jitter, backwards lurches and branch ping-pong.
+
+**Changes since v0.12:** Added the **win moment** — the chest bursts open, then holds on the settled chain
+before the win screen (§4.2.2). Rotation is taught by a **prompt on 1-1**, with the skipped-prompt risk recorded
+and a cheap fallback noted (§7.8). **Sharing deferred with a reserved hook** (§5.11). No reduce-motion option —
+the camera is expected to flow smoothly instead (§6.3).
+
+**Changes since v0.11:** **Island shape rule added** (§7.9.1). Portrait plus eight fixed camera angles means
+verticality, not sprawl, is how a level uses the screen. Worlds 1–2 are compact and fully visible; later worlds
+may grow. Camera and tooling must handle both from the start.
+
+**Changes since v0.10:** Art direction sharpened — **banded cel shading with real shadows kept** (§8.3.1),
+**no outlines**, and **opaque water with a foam shoreline** (§8.3.2). Fully unshaded flat colour was rejected
+because it breaks depth perception in orthographic. Foam needs depth-texture access, which links it to the
+renderer choice (FO-007).
 
 **Changes since v0.9:** Unit scale fixed at **1 unit = 10 cm**, and — critically — **gravity raised to 98**
 to match (§4.4.1). Without this, blocks simulate as 4-metre objects and fall ~3× too slowly, which is what the
@@ -175,6 +194,17 @@ the break point (§4.10), and with branching (§4.3) it identifies which branch 
 
 🔓 The force threshold for propagating *live*. Too low and a settling wobble spreads it; too high and a gentle but
 genuine link in the chain is ignored. Tune on device (§16 #38).
+
+#### 4.2.2 The win moment
+
+**The chest bursts open.** Lid flies up, light or coins spill out, a satisfying sound.
+
+This is the payoff of everything the player built, and it is the cheapest possible way to make finishing feel
+good — a few seconds of animation for the emotional peak of the whole loop. Pillar 1 says the run is the payoff;
+this is its final beat.
+
+Sequenced: chest is hit → chest opens → **brief hold on the settled chain** so the player can see what they
+built → win screen. Don't cut straight to UI over the top of the moment.
 
 ### 4.3 Chains and branching
 
@@ -604,6 +634,20 @@ which sits oddly beside a currency otherwise earned through skill.
 
 ---
 
+### 5.11 Sharing — deferred, hook reserved
+
+A finished domino chain is inherently shareable, and with **no ads and no analytics** (§12, §13.5), word of mouth
+is the only growth lever this game has. So sharing matters more here than it would elsewhere.
+
+**Not built for launch.** The win screen reserves a disabled slot for a share button (§13.5) so adding it later
+is a feature, not a redesign.
+
+When built, the cheap version is a **screenshot of the settled chain** through the phone's normal share sheet —
+no servers, no accounts, no infrastructure. A video clip of the run would be far more compelling, since domino
+chains are made for video, but screen recording on Android is real work. Screenshot first.
+
+---
+
 ## 6. Camera and controls
 
 ### 6.1 Control scheme — selection-driven modality
@@ -670,25 +714,63 @@ sensitivities, snap increments and easing values exported and tunable.
 
 ### 6.3 Run-phase camera
 
-The camera **automatically widens to fit all active chains**, so nothing important happens off-screen —
-which matters much more once branching exists (§4.3). In orthographic this means growing the orthographic
-size, which is simpler and more predictable than a perspective dolly.
+**The camera decides where to look. The player decides which side to look from.** That split is the whole design,
+and it removes any need to arbitrate between them.
 
-Rotation does **not** snap during the run — the camera holds whichever of the eight angles the player left it
-at, and only the framing changes. Re-orienting mid-collapse would be disorienting.
+| Aspect | Owned by |
+|---|---|
+| **Position and framing** | The game — always automatic, never player-controlled during a run |
+| **Rotation (which side you watch from)** | The player — always, freely, at any moment |
 
-Two guards, because naive zoom-to-fit ruins the shot:
+There is **no hand-off and no resume timer.** The player is never "taking over" the camera and the game is never
+waiting to take it back. They control different things, continuously. Do nothing and the run plays out from
+whatever angle you were already on.
 
-- **A maximum orthographic size clamp.** Never widen so far that blocks become unreadable specks. If the
-  action genuinely can't fit, prioritise the main chain.
-- **Only widen when needed.** A single-chain level keeps the tight, exciting framing. Widening happens only
-  with genuinely multiple active fronts.
+- **Rotation is free and unsnapped during a run.** Unlike the build phase (§6.2), it does not settle to 45°
+  increments — the player is following motion, not judging placement, and may want to peek round a rock at any
+  angle.
+- **Panning and zooming are not available during a run.** The framing is the game's job; letting the player fight
+  it is how cameras end up feeling broken.
+- The run starts at whatever angle the build phase ended on. No reorientation, ever — re-aiming the camera
+  mid-collapse would be disorienting.
 
-The player may take over the camera mid-run; auto-behaviour resumes after a short pause with no input.
-Never trap the player watching the wrong thing.
+#### 6.3.1 How the camera picks its target
 
-Motion must be smooth and predictable. **This camera is the single biggest "feels cheap" risk in the
-game** and deserves more iteration than any other system.
+**It follows the aggregate of live bodies that are still moving, not a single block.**
+
+Each physics tick: collect the bodies carrying the *live* flag (§4.2.1) whose velocity is above a threshold,
+compute the bounding box that contains them, aim at its centre, and size the orthographic view to fit. Damp both
+position and size so the camera eases rather than snaps.
+
+**Only moving bodies count.** Including settled ones drags the camera backwards toward the start of the chain as
+the fallen tail accumulates behind the action.
+
+*Why not simply chase the newest live block* — which is what the Unity prototype did, and the obvious first
+instinct:
+
+- Several blocks often go live in the same physics tick, so the camera flicks between them
+- A domino sometimes knocks something *behind* it, lurching the camera backwards
+- With branching (§4.3), two simultaneous fronts make it ping-pong — the nauseating case
+- The interesting thing is a *region*, the front of the collapse, not a point
+
+Framing a box solves all four without special-casing any of them: simultaneous activations just widen the box, a
+backwards knock barely moves its centre, and two branches are simply a bigger box.
+
+Two guards, because naive fit-to-box ruins the shot:
+
+- **A maximum orthographic size clamp.** Never widen so far that blocks become unreadable specks. If the action
+  genuinely cannot fit, prioritise the main chain.
+- **Only widen when needed.** A single-chain run keeps the tight, exciting framing. Widening happens only with
+  genuinely multiple active fronts.
+
+Motion must be smooth and predictable. **This camera is the single biggest "feels cheap" risk in the game** and
+deserves more iteration than any other system.
+
+**No reduce-motion option.** Declined on the grounds that the camera should flow smoothly enough not to need one.
+That puts the burden on the camera itself: if the motion is slow and eased nobody needs a toggle, and if it snaps
+or whips a toggle wouldn't have saved it. Note that the player controlling rotation helps here — they're never
+being spun around against their will. Revisit only if a playtester reports discomfort, and note there is no
+analytics to surface that, so it would have to come up in person (§12).
 
 ### 6.4 Opening fly-through
 
@@ -806,8 +888,19 @@ placement and nothing else.
 After that, level design does the teaching: each new idea arrives in a level constrained enough that the
 new thing is the obvious move.
 
-🔓 Do later new mechanics (the Ball block, the Turnaround, branching, undo) get a short first-time
-prompt, or does level design carry them alone?
+**The rotation gesture is taught by a prompt on level 1-1.** "Place the block, then swipe sideways to spin it" —
+shown once, as text or an animated finger.
+
+⚠️ **Recorded risk:** players skip prompts. Place-then-swipe is not a gesture anyone will discover unaided, there
+is no hint system (§7.9), and there is no analytics (§12) to reveal that someone never worked out how to rotate.
+A player who misses this prompt is stuck on the game's core verb with no way to recover.
+
+Cheap insurance if playtesting shows it happening: make an early level *require* rotation to complete — put the
+chest off to one side so a straight line cannot reach it. Teaching by necessity survives a skipped prompt.
+Flagged rather than built (§16 #40).
+
+🔓 Do later new mechanics (the Ball block, the Turnaround, branching, undo) get a short first-time prompt too, or
+does level design carry them alone?
 
 ### 7.9 No hints, no skip — and why that's now safe
 
@@ -826,6 +919,40 @@ is ever narrowed to one level, hints or a skip become necessary in the same chan
 **If playtesting still shows players stalling**, the cheapest fix remains available: every level already
 stores a reference solution for automated fragility testing (§13.1 item 4), so a hint that ghosts the next
 correct block is nearly free to add. Held in reserve, not planned.
+
+### 7.9.1 Island shape and the portrait screen
+
+The screen is 1080×1920 — tall and narrow — and the camera is orthographic, looking down at one of eight fixed
+45° angles (§6.2). This constrains island design in a way that's cheap to design around and expensive to retrofit.
+
+**The geometry.** Looking down at an angle, the visible ground area is a diamond, not a rectangle. Ground running
+*away* from the camera is foreshortened, so the tall screen covers roughly 1.4× more ground depth than its pixel
+height suggests. Portrait is generous in depth and stingy across it. But **because the camera snaps to eight
+angles, the player chooses which direction "away" is** — so no island can be designed to exploit that. An island
+long in one axis frames well from two angles and badly from the two at right angles.
+
+Also: the block palette occupies the bottom of the screen and the coin count the top, so usable play area is
+closer to 1080×1400.
+
+**The resolution: height, not sprawl.** Elevation maps directly onto screen-vertical and reads identically from
+all eight angles. A cliff, a tier, a raised platform fills the tall screen wherever the player stands; horizontal
+sprawl does not. This also happens to match the height-change mechanics worlds 1–2 already introduce (§7.3) — the
+screen shape and the mechanic list want the same thing.
+
+**The rule, staged:**
+
+| Stage | Island shape |
+|---|---|
+| **Worlds 1–2 (launch)** | **Compact footprint, fully visible at default zoom.** The player never has to pan to understand the puzzle. Interest comes from elevation — cliffs, tiers, platforms — not from area. |
+| **Worlds 3+ (post-launch)** | May grow larger, once players understand the game well enough to explore an island they can't see all at once. |
+
+**⚠️ Consequence for the camera and tooling:** because bigger islands are planned for later, the camera rig
+(FO-011), the run camera (FO-015) and the level tooling must handle both cases **from the start**. Building for
+compact islands only and widening later means reworking the camera bounds, the zoom limits and the fit logic
+after levels exist. Design for the general case; ship the constrained one.
+
+🔓 The actual footprint limit for a compact island, in Godot units. Falls out of FO-011 once the camera's default
+orthographic size is tuned — a level is "compact" if it fits in that view (§16 #39).
 
 ### 7.10 Level authoring
 
@@ -1030,6 +1157,45 @@ Using the real palette from day one means the grey-box looks *intentional* rathe
 | Terrain | Light Green `#82ba61` |
 | Water | Light Blue `#75b1cb` |
 | Invalid placement | Light Red `#eb5d5d`, translucent |
+
+### 8.3.1 Shading: banded cel shading
+
+**Light is quantised into 2–3 bands instead of a smooth gradient.** One custom spatial shader, reused across
+everything. Cheap on mobile — it only replaces the lighting calculation, adds no passes.
+
+**⚠️ Real shadows stay.** This is the constraint that governs the whole shading approach: §8.1 makes
+ground-contact shadows load-bearing, because orthographic projection gives the player no other way to tell a
+resting block from a hovering one. Cel shading and strong shadows are compatible — a hard-edged banded shadow
+reads *better* than a soft gradient one, not worse.
+
+**What is therefore forbidden:** any shading approach that removes shadows, softens ground contact, or replaces
+lit shading with flat ambient colour. Fully unshaded flat colour was considered and rejected for exactly this
+reason. If a future art idea would weaken block-to-ground contact, it is a gameplay regression and needs a
+different solution.
+
+**No outlines.** Inverted-hull and screen-space outlines were both considered and declined. Low-poly silhouettes
+separate well enough on flat colour with shadows, and skipping outlines saves a draw pass per object, avoids
+shimmer at phone resolution, and keeps the Mobile renderer viable. Revisit only if shapes prove hard to read on
+device — outlines on blocks alone would be the cheapest version.
+
+### 8.3.2 Water
+
+**Opaque flat colour with a foam shoreline.**
+
+- **Flat, opaque** Light Blue. No transparency — that avoids sorting bugs and fill-rate cost on mobile, both of
+  which buy nothing here.
+- **A white foam band where water meets land.** This single detail is what makes stylised water read as water,
+  far more than surface animation does. Usually achieved by comparing scene depth near the shoreline.
+- **No waves or surface animation.** Deliberately: water is background, and Pillar 1 says the falling chain is
+  what the player should be watching. Animated water competes with it.
+
+**Water is a hazard first and scenery second.** Blocks that fall in are lost for the run (§4.10). It must *read*
+as dangerous — the foam line doubles as a visual warning marking the island edge.
+
+🔓 **Depth-texture access is more constrained on Godot's Mobile renderer than on Forward+**, and which renderer
+we ship is still open (§16 #1). The foam effect and the renderer choice are now linked — FO-007 must test the
+foam shader, not just measure frame rate. If depth turns out to be unavailable, the fallback is a painted foam
+band baked into the terrain edge geometry, which costs nothing at runtime but has to be authored per piece.
 
 ### 8.4 Brand palette
 
@@ -1309,8 +1475,9 @@ block count. This matters more with branching, where several fronts are live at 
 Business model **deliberately deferred**. Two seams are left open now, because retrofitting later means
 restructuring level flow and migrating save data:
 
-- Level flow passes through a single choke point where an interstitial or rewarded hook could later be
-  inserted.
+- Level flow passes through a single choke point where an interstitial or rewarded hook could later be inserted.
+- **The win screen reserves space for a share button**, disabled and unbuilt. Sharing a screenshot of a finished
+  chain is deferred (§5.11), but leaving the slot means adding it later doesn't mean redesigning the screen.
 - Save data can carry entitlement flags without a migration.
 
 **Seams only.** No ad SDK, no IAP code, no analytics, no tracking until the model is decided.
@@ -1431,6 +1598,8 @@ one of these independently — they are all Wouter's call.**
 | 27 | ~~Help for stuck players~~ — **RESOLVED:** rolling reveal window (§7.7). No hints, no skip | Resolved |
 | 28 | **Reveal window size** — 3 is a starting guess; tune on real levels | Phase 6 |
 | 38 | **Force threshold for propagating the *live* flag** (§4.2.1) | Phase 2 |
+| 39 | **Compact-island footprint limit** in Godot units — falls out of FO-011's default orthographic size (§7.9.1) | Phase 1 |
+| 40 | Whether an early level should *require* rotation, as insurance against a skipped tutorial prompt (§7.8) | Phase 6 |
 | 29 | What "checkpoints" means when a chain runs in one continuous push (§14) | If used |
 | 30 | What currency "pay for a shortcut" would use, given coins are pre-spent (§14) | If used |
 | 31 | **Drag/damping values** per block type — governs how runs end and how they feel (§4.9.2) | Phase 0 |

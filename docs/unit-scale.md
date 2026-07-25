@@ -47,3 +47,20 @@ recommendation.
 Every later story that authors geometry — islands, kit pieces, obstacle slots, block catalogue entries —
 uses this scale as given. FO-003's damping/feel values were tuned at this scale and should be revisited
 together with it, not independently, if the scale is ever reopened.
+
+## Gravity (FO-019)
+
+**`physics/3d/default_gravity` = 98, not the Godot default of 9.8.**
+
+Blocks are authored 10× larger than the real objects they represent (this document's whole point), and
+Godot applies gravity as though 1 unit = 1 metre regardless of what we call a unit. Without compensating,
+a block "4 units tall" falls at the rate physics expects of an actual 4-metre object — about 3× too slowly
+(toppling time scales with the square root of height). Confirmed exactly this in Wouter's first FO-003
+playtest ("a bit slow") and again mechanically in headless testing before this change.
+
+**Fix:** scale gravity by the same factor as the size exaggeration — 10× bigger objects need 10× stronger
+gravity to fall at the rate the eye expects, the same principle as speeding up footage of a scale model.
+
+**Confirmed on Wouter's own live playtest after the change: fall speed now reads correctly.** This is the
+one criterion in FO-019 that requires a human judgement and it's been made — see BACKLOG FO-019 findings
+for the rest (damping re-tuning, a known unresolved jitter issue, and why it isn't chased further here).
