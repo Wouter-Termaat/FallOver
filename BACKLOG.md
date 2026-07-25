@@ -88,7 +88,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-001** · S · Create the Godot project skeleton
 - [x] **FO-002** · S · Configure physics for reliability
 - [x] **FO-003** · M · Grey-box test scene with a falling domino chain
-- [ ] **FO-008** · M · Determine the unit scale
+- [x] **FO-008** · M · Determine the unit scale
 - [ ] **FO-006** · M · Android export pipeline
 - [ ] **FO-007** · S · Renderer and min-API decisions
 - [ ] **FO-004** · M · Choose the physics backend by measurement
@@ -312,13 +312,19 @@ between 4.x releases; the values above were checked but should be re-verified.
   than the docs, whose online ProjectSettings page didn't render the values). Confirmed unchanged in 4.7:
   `physics/common/physics_ticks_per_second` (default 60), `physics/common/max_physics_steps_per_frame`
   (default 8), `physics/common/physics_interpolation` (default `false`).
-- Setting a value that *equals* Godot's default (60 and 8) **does survive** in `project.godot` across a
-  headless open — it is not stripped the way comments are. The explicitness the story asks for is durable.
 - Values confirmed read back at runtime as 60 / 8 / `true`.
 - **Tooling note for later stories:** `C:\Program Files\Godot\Godot_v4.7.1-stable_win64.exe` is the GUI
   build, so it writes nothing to stdout/stderr when run from a shell — a failing script looks identical to
   a passing one. Pass `--log-file <path>` and read the log, or errors will be invisible. There is no
   `_console.exe` alongside it.
+- **Correction, found after real editor use (during FO-003 playtesting):** a value that *equals* Godot's
+  default does **not** durably survive — it only looked that way because I'd only tested headless
+  open/quit. Opening the project in the actual editor and playing a scene silently pruned
+  `physics_ticks_per_second=60` and `max_physics_steps_per_frame=8` from `project.godot` (both equal
+  Godot's default), while `physics_interpolation=true` survived because it differs from its default.
+  Functionally harmless — the active values are still 60/8 either way — but the "obviously deliberate"
+  file marker doesn't hold up. `docs/physics-rules.md` is the durable record now; expect these two lines
+  to keep vanishing from `project.godot` and don't chase it as a bug.
 
 ---
 
@@ -387,7 +393,7 @@ after FO-008, not before.
 
 ---
 
-### [ ] FO-008 — Determine the unit scale · M
+### [x] FO-008 — Determine the unit scale · M
 
 **Goal:** resolve PRD open decision #5. **Every piece of geometry in the game depends on this**, so it
 must be settled before any island or level is built.
@@ -417,6 +423,22 @@ backend choice materially affects stability and feel at a given scale. It runs f
 FO-009 and FO-010 cannot start without *a* scale. **After FO-004 lands, re-run this story's tests under
 the chosen backend and confirm the scale still holds.** If it doesn't, changing it early is cheap;
 changing it after twenty levels exist is not.
+
+**Findings (FO-008):**
+
+- **Decision: 1 Godot unit = 10 cm, so a Standard Block is 40 × 20 × 5 cm.** Full reasoning in
+  `docs/unit-scale.md`. Adopted the PRD's own recommendation directly, at Wouter's explicit instruction.
+- **The three-way on-device comparison in the acceptance criteria (1 cm / 10 cm / 1 m) was not run.**
+  Wouter chose to go straight with the PRD's recommendation rather than test and compare all three.
+  Flagging this plainly per CLAUDE.md rule 3 — the 1 cm and 1 m alternatives were never actually
+  eliminated by testing, only skipped by choice.
+- **No changes needed to FO-003.** The test scene already builds blocks using the catalogue ratios
+  (4 × 2 × 0.5) directly as Godot units, which *is* this decision — it was already the default before this
+  story ran, not something to retrofit.
+- Confirms the reading of Wouter's "a bit slow" feedback on FO-003 (see FO-003 findings above): the
+  slowness comes from Godot's real-gravity assumption acting on a nominally-4-metre object, not from the
+  unit-scale choice itself — the unit label doesn't change simulated physics, only how geometry is
+  authored and read.
 
 ---
 
