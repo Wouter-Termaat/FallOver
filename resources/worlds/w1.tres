@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="WorldDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/level_definition.gd" id="1_locss"]
+[ext_resource type="Script" path="res://scripts/data/block_definition.gd" id="2_epahv"]
+[ext_resource type="Resource" path="res://resources/blocks/standard.tres" id="3_qraef"]
+[ext_resource type="Resource" path="res://resources/blocks/long.tres" id="4_0lqqg"]
+[ext_resource type="Script" path="res://scripts/data/placed_piece.gd" id="5_0s606"]
+[ext_resource type="Resource" path="res://resources/kit/flat_plate.tres" id="6_r4c4b"]
+[ext_resource type="Resource" path="res://resources/kit/gap.tres" id="7_w6jfd"]
+[ext_resource type="Script" path="res://scripts/data/placed_slot.gd" id="8_lr1eq"]
+[ext_resource type="Script" path="res://scripts/data/placed_block.gd" id="9_14ag5"]
+[ext_resource type="Script" path="res://scripts/data/world_definition.gd" id="10_rqpq8"]
+[ext_resource type="Resource" path="res://resources/themes/grey_box.tres" id="11_44vkd"]
+
+[sub_resource type="Resource" id="Resource_3x6dy"]
+script = ExtResource("5_0s606")
+piece = ExtResource("6_r4c4b")
+piece_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+
+[sub_resource type="Resource" id="Resource_kuf7e"]
+script = ExtResource("5_0s606")
+piece = ExtResource("7_w6jfd")
+piece_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, 0)
+
+[sub_resource type="Resource" id="Resource_hdare"]
+script = ExtResource("5_0s606")
+piece = ExtResource("6_r4c4b")
+piece_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, -1, 0)
+
+[sub_resource type="Resource" id="Resource_py8pk"]
+script = ExtResource("1_locss")
+island_layout = Array[ExtResource("5_0s606")]([SubResource("Resource_3x6dy"), SubResource("Resource_kuf7e"), SubResource("Resource_hdare")])
+starter_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2, 0)
+finish_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 2, 0)
+available_block_types = Array[ExtResource("2_epahv")]([ExtResource("3_qraef"), ExtResource("4_0lqqg")])
+star2_coin_threshold = 15
+star3_coin_threshold = 18
+flythrough_position_a = Vector3(-6, 6, 10)
+flythrough_size_a = 24.0
+flythrough_position_b = Vector3(20, 6, -10)
+flythrough_size_b = 24.0
+required_block_types = Array[ExtResource("2_epahv")]([ExtResource("3_qraef"), ExtResource("4_0lqqg")])
+
+[resource]
+script = ExtResource("10_rqpq8")
+world_name = "Grass"
+theme_kit = ExtResource("11_44vkd")
+unlocked_block_types = Array[ExtResource("2_epahv")]([ExtResource("3_qraef"), ExtResource("4_0lqqg")])
+levels = Array[ExtResource("1_locss")]([SubResource("Resource_py8pk")])

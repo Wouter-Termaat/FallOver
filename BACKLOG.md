@@ -115,7 +115,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 
 ### Phase 2 — A complete level (12)
 
-- [ ] **FO-020** · M · Level and world definition resources
+- [x] **FO-020** · M · Level and world definition resources
 - [ ] **FO-021** · M · Coins — the level constraint
 - [ ] **FO-023** · M · Finish, win detection and fail state
 - [ ] **FO-025** · M · Opening fly-through
@@ -1299,7 +1299,7 @@ the first real use of them.
 
 ---
 
-### [ ] FO-020 — Level definition resource · M
+### [x] FO-020 — Level definition resource · M
 
 **Goal:** levels as data (PRD §13.3), superseding the old manual authoring checklist.
 
@@ -1333,6 +1333,18 @@ Plus:
 **Blocked by:** FO-030, FO-031, FO-010 (block types to list).
 
 **Out of scope:** world map and level select (Phase 4), reassignment validation (FO-033).
+
+**Findings:** `PlacedPiece`/`PlacedSlot`/`PlacedBlock` are small resource wrappers (piece-or-slot-or-block
++ transform), giving `LevelDefinition` typed arrays instead of parallel arrays. `LevelLoader.build()`
+takes a level + world and returns the level content only (terrain, slots, starter, finish) — the reusable
+game shell (camera/placement/run/HUD) stays a separate scene that instances this, same shape as
+`greybox_island.tscn`. **`w1_l01.tres`/`w1.tres` are placeholder example data** (two flat plates with a
+gap, generated programmatically via `ResourceSaver` rather than hand-written `.tres` — typed arrays of
+custom resources are fragile to author by hand and this guarantees correct serialization) — **not** level
+1-1's real design, which is FO-028's job and Wouter's creative call, not mine. Verified headless: the
+loader builds the expected 5 nodes (3 pieces + Start + Victory) with correct transforms, collision layers,
+and groups. Level-reassignment re-dressing itself isn't separately verified here — that's exactly what
+FO-031's theme-swap test already proved (the loader just passes `world.theme_kit` through unchanged).
 
 ---
 
