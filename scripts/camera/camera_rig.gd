@@ -43,6 +43,11 @@ extends Node3D
 ## placing, all touch input is placement, per PRD §6.1's single clean rule.
 @export var input_enabled: bool = true
 
+## FO-015: during a run the camera owns position/size (RunCamera drives them
+## directly via set_run_target), and orbit no longer snaps to 45° — the
+## player can still freely rotate, but the automatic system never reorients.
+@export var run_mode: bool = false
+
 const CAMERA_DISTANCE: float = 40.0
 
 @onready var _camera: Camera3D = $Camera3D
@@ -208,6 +213,8 @@ func _apply_orbit_delta(relative: Vector2, sensitivity: float = -1.0) -> void:
 
 
 func _apply_pan_delta(relative: Vector2) -> void:
+	if run_mode:
+		return # the run camera owns position, PRD §6.3
 	# Horizontal only, by design (Wouter's call): with a fixed orthographic
 	# elevation, panning "toward/away from camera" reads oddly, so two-finger
 	# drag only slides the focus sideways, relative to current yaw so it
@@ -230,9 +237,20 @@ func nudge_focus_world(delta: Vector3) -> void:
 
 
 func _apply_zoom_ratio(ratio: float) -> void:
+	if run_mode:
+		return # the run camera owns size, PRD §6.3
 	_target_size = clamp(_target_size * ratio, min_orthographic_size, max_orthographic_size)
 
 
 func _snap_yaw_to_nearest_increment() -> void:
+	if run_mode:
+		return # PRD §6.3: rotation stays free and unsnapped during a run
 	var increment: float = deg_to_rad(snap_increment_deg)
 	_target_yaw = round(_target_yaw / increment) * increment
+
+
+## Driven by RunCamera every physics tick while a run is active — bypasses
+## the build-phase bounds clamp since the fit box can extend past them.
+func set_run_target(focus: Vector3, size: float) -> void:
+	_target_focus = focus
+	_target_size = clamp(size, min_orthographic_size, max_orthographic_size)

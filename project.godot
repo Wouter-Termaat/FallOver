@@ -41,3 +41,7 @@ rendering_method.mobile="mobile"
 [physics/3d]
 
 physics_engine="Jolt Physics"
+
+[autoload]
+
+BuildState="*res://scripts/simulation/build_state.gd"

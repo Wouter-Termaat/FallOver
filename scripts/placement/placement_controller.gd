@@ -244,6 +244,7 @@ func _commit_or_cancel() -> void:
 	elif _ghost_valid:
 		_current_command = PlacementCommand.new(get_parent(), _definition, _ghost.global_transform)
 		_current_command.do()
+		BuildState.register(_current_command)
 		_state = State.ROTATING
 	else:
 		_state = State.IDLE
@@ -323,6 +324,7 @@ func _on_rotate_pressed() -> void:
 
 func _on_sell_pressed() -> void:
 	_hide_radial_menu()
+	BuildState.unregister(_edit_command)
 	_edit_command.undo() # refund lands in Phase 2 (FO-021) once coins exist
 	_edit_command = null
 	camera_rig.input_enabled = true

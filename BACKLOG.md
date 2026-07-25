@@ -103,10 +103,10 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-012** · S · Block palette UI
 - [x] **FO-013** · L · Selection-driven placement input ⚠️ *highest risk in the project*
 - [x] **FO-014** · M · Edit and remove placed blocks
-- [ ] **FO-015** · L · Run the simulation with a zoom-to-fit camera ⚠️ *biggest "feels cheap" risk*
+- [x] **FO-015** · L · Run the simulation with a zoom-to-fit camera ⚠️ *biggest "feels cheap" risk*
 - [ ] **FO-017** · M · Undo and redo history
 - [ ] **FO-018** · S · Clear all
-- [ ] **FO-016** · M · Reset to the standing layout
+- [x] **FO-016** · M · Reset to the standing layout
 
 ### Phase 1.5 — Level authoring foundations (2)
 
@@ -1015,7 +1015,7 @@ undoing thirty placements one at a time.
 
 ---
 
-### [ ] FO-015 — Run the simulation with a zoom-to-fit camera · L
+### [x] FO-015 — Run the simulation with a zoom-to-fit camera · L
 
 **Note from Wouter (session end):** wants a Start button soon specifically to trigger the starter block
 falling on the grey-box island, for easy manual testing — flagged as wanted "next time," ahead of the full
@@ -1077,9 +1077,41 @@ simple and extensible.
 **Feel note:** this camera is the single biggest "feels cheap" risk in the game (PRD §6.3). Getting it
 right matters more than almost anything else in this phase.
 
+**Findings (overnight, headless only — no on-device feel testing possible):**
+
+- Built `RunController` (start/reset/live-flag/settle/no-progress/fast-forward via `Engine.time_scale`,
+  lost-block removal), `RunCamera` (fit-to-box of moving live bodies), `layout_snapshot.gd`, `game_hud.tscn`.
+- CameraRig gained `run_mode`: orbit stays live and unsnapped, pan/zoom disabled, position/size driven by
+  RunCamera. Camera ownership split from PRD §6.3 implemented as specified.
+- **Found and fixed a real bug during testing:** `BlockSpawner` (used for every real placed block) had no
+  damping and no `contact_monitor` set at all — FO-019/FO-004's tuned values only ever lived in the FO-003
+  test scene, never made it into the actual game path. Added the same validated defaults
+  (`linear_damp=0.5`, `angular_damp=2.0`) plus `contact_monitor=true` (required for live-flag propagation).
+- **Found and fixed:** the starter (`Start` node) was still a `StaticBody3D` from FO-009 — converted to a
+  frozen `RigidBody3D` so it can actually receive an impulse and fall.
+- **Found and fixed:** `LayoutSnapshot` only captures `BuildState`-registered player-placed blocks, not the
+  starter (which isn't "placed" by the player). Reset silently failed to restore the starter until this was
+  caught — added an explicit starter-transform snapshot in `RunController`.
+- **Verified headless, via a temporary test scene** (not committed): run starts, starter receives impulse
+  and falls, settle detection correctly ends the run, reset correctly restores both the starter and a
+  placed block to their exact original transforms and freeze state. Live-flag propagation code runs
+  without error; not confirmed hitting a neighboring block (see below).
+- **⚠️ Open finding, not resolved — needs on-device tuning, not guessing:** the default impulse strength on
+  *this specific island layout* sits on a narrow, chaotic edge — too weak and the starter doesn't tip at
+  all, slightly stronger and it tumbles past flat and off the platform into the gap. Tried 1.2/1.6/2.5/6.0;
+  none gave a clean "tips over and stops" result blind. Left at `1.6` as a placeholder. This might be a
+  real design-margin problem (PRD §13.1) with the starter's position too close to the platform edge, or it
+  might just need feel-tuning eyes on it — can't tell without watching it. **Needs your eyes first thing.**
+- The lost-block removal mechanism itself works correctly (confirmed the starter tumbling into the gap
+  gets detected, removed, and fully restored on reset) — so even the "bad" tuning result validated a real
+  piece of the system.
+- Not tested on-device at all tonight (no phone interaction while you're asleep) — orbit-during-run,
+  camera fit-to-box framing quality, and fast-forward's actual feel are all unverified. Please test these
+  first.
+
 ---
 
-### [ ] FO-016 — Reset to the standing layout · M
+### [x] FO-016 — Reset to the standing layout · M
 
 **Note from Wouter (session end):** wants a simple reset button soon so the grey-box island can be reset
 easily during manual testing, without waiting for the full Phase 1 ordering if a quick version is faster.
@@ -1110,6 +1142,12 @@ randomness somewhere; or the snapshot is taken after physics already nudged some
 contact-ordering variance can also cause tiny legitimate differences — but if that alone flips outcomes,
 the real finding is that the test layout has **no design margin** (PRD §13.1 item 4), which is itself
 worth knowing.
+
+**Findings:** built alongside FO-015 (`RunController.reset()` + `LayoutSnapshot`), since the freeze/restore
+halves share the same state. Verified headless: starter and a placed block both restore to their exact
+original transform and freeze state after a run. The "20 consecutive runs, same outcome" device-verified
+criterion is **not done** — no phone available tonight — and is exactly the check that would surface FO-015's
+open impulse-tuning question, so do that check first when you're back.
 
 ---
 

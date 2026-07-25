@@ -1,8 +1,11 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/camera_rig.tscn" id="1_camera_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/block_palette.tscn" id="2_block_palette"]
 [ext_resource type="Script" path="res://scripts/placement/placement_controller.gd" id="3_placement_controller"]
+[ext_resource type="Script" path="res://scripts/simulation/run_controller.gd" id="4_run_controller"]
+[ext_resource type="Script" path="res://scripts/camera/run_camera.gd" id="5_run_camera"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="6_game_hud"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_Ground"]
 albedo_color = Color(0.509804, 0.729412, 0.380392, 1)
@@ -88,10 +91,16 @@ groups = ["CameraBounds"]
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CameraBounds"]
 shape = SubResource("Shape_CameraBounds")
 
-[node name="Start" type="StaticBody3D" parent="."]
+[node name="Start" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 2, 0)
 collision_layer = 4
-collision_mask = 0
+collision_mask = 1
+freeze = true
+can_sleep = true
+linear_damp = 0.5
+angular_damp = 2.0
+contact_monitor = true
+max_contacts_reported = 8
 groups = ["Start"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Start"]
@@ -120,7 +129,22 @@ surface_material_override/0 = SubResource("Mat_Finish")
 
 [node name="BlockPalette" parent="UI" instance=ExtResource("2_block_palette")]
 
+[node name="GameHud" parent="UI" node_paths=PackedStringArray("run_controller") instance=ExtResource("6_game_hud")]
+run_controller = NodePath("../../RunController")
+
 [node name="PlacementController" type="Node3D" parent="." node_paths=PackedStringArray("camera_rig", "palette")]
 script = ExtResource("3_placement_controller")
 camera_rig = NodePath("../CameraRig")
 palette = NodePath("../UI/BlockPalette")
+
+[node name="RunController" type="Node" parent="." node_paths=PackedStringArray("starter", "camera_rig", "palette", "placement_controller")]
+script = ExtResource("4_run_controller")
+starter = NodePath("../Start")
+camera_rig = NodePath("../CameraRig")
+palette = NodePath("../UI/BlockPalette")
+placement_controller = NodePath("../PlacementController")
+
+[node name="RunCamera" type="Node" parent="." node_paths=PackedStringArray("run_controller", "camera_rig")]
+script = ExtResource("5_run_camera")
+run_controller = NodePath("../RunController")
+camera_rig = NodePath("../CameraRig")
