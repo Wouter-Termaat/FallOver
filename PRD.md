@@ -1,6 +1,6 @@
 # Fall Over — Product Requirements Document
 
-**Version:** 0.9
+**Version:** 0.10
 **Last updated:** 2026-07-24
 **Owner:** Wouter Termaat
 **Status:** Pre-production. Items marked 🔓 are unresolved and are Wouter's call — see §16.
@@ -12,6 +12,10 @@ categories. Added undo/redo, mid-level resume, and haptics. Blocks cannot be sta
 past launch**, which changes the launch meta-screen set. **Level select now uses a rolling reveal
 window** (§7.7) — this replaced one-at-a-time reveal after §5.3.1 showed the main route was otherwise a
 hard wall for stuck players.
+
+**Changes since v0.9:** Unit scale fixed at **1 unit = 10 cm**, and — critically — **gravity raised to 98**
+to match (§4.4.1). Without this, blocks simulate as 4-metre objects and fall ~3× too slowly, which is what the
+first FO-003 playtest reported. Must be done before FO-004 and FO-005 measure anything.
 
 **Changes since v0.8:** **Fixed-inventory levels cut** (§4.6) — coins are the only constraint model. The same
 puzzles are reachable by pricing blocks high or limiting which types a level offers.
@@ -208,9 +212,34 @@ From the *Project Overview* spreadsheet. Costs in **coins**. Dimensions **H × L
 | Rope | 🔓 | — | — | Connects blocks to each other or to the environment | Candidate |
 | Fragile / glass block | 🔓 | — | — | Lightweight, can break | Candidate |
 
+#### 4.4.1 Unit scale and gravity
+
+**1 Godot unit = 10 cm.** A Standard Block is authored as 4 × 2 × 0.5 units, understood as 40 × 20 × 5 cm —
+chunky, oversized dominoes suiting the diorama look (§8.1), and comfortably inside the range Godot's solver is
+tuned for. Recorded in `docs/unit-scale.md`.
+
+**⚠️ Gravity must be scaled to match: `physics/3d/default_gravity` = 98, not 9.8.**
+
+This is not optional polish, and the reason is easy to get wrong. Godot applies gravity as though 1 unit = 1
+metre, regardless of what we *say* a unit means. So a block authored 4 units tall physically behaves like a
+**4-metre** domino. Toppling time scales with the square root of height, so it falls about **3× too slowly** —
+which is exactly what Wouter's first playtest of FO-003 reported as "a bit slow".
+
+Calling the unit 10 cm is a *labelling* convention; it changes nothing in the simulation. The fix is to scale
+gravity by the same factor as the size exaggeration: 10× bigger blocks need 10× stronger gravity to fall at the
+rate the eye expects. Same principle as filming a model and speeding the footage up.
+
+Consequences to respect:
+
+- **Impact speeds rise ~3×**, so the solver has less time per tick to resolve contacts. 60 ticks/second may no
+  longer be enough — this needs a stability retest, not just a settings change (§13.1).
+- **Damping values tuned before this change are invalid** and must be re-found.
+- **This must be settled before FO-004 and FO-005**, which measure backend stability and the active-body ceiling.
+  Measuring at the wrong gravity produces numbers that have to be thrown away.
+
 **⚠️ Two things need resolving before any of this is built:**
 
-- 🔓 **Units and scale.** "4 × 2 × 0.5" has no unit. A real domino is roughly 45 × 24 × 7 mm, so the
+- ~~**Units and scale**~~ — **RESOLVED**, see §4.4.1 above. (Original note retained for context: "4 × 2 × 0.5" has no unit.) A real domino is roughly 45 × 24 × 7 mm, so the
   ratios are plausible but the scale is undefined. Godot's physics is tuned for **1 unit = 1 metre**,
   and rigid bodies behave badly at very small scales. Recommendation: treat 1 unit ≈ 10 cm, making a
   standard block 40 × 20 × 5 cm — chunky, oversized dominoes, which suits the stylised look and keeps
@@ -1377,7 +1406,7 @@ one of these independently — they are all Wouter's call.**
 | 2 | Physics backend: GodotPhysics3D vs Jolt | Phase 0 |
 | 3 | Minimum Android API level | Phase 0 |
 | 4 | Active rigid body ceiling | Phase 0 |
-| 5 | **Unit scale** — is 1 unit ≈ 10 cm? Everything geometric depends on it | Phase 0 |
+| 5 | ~~Unit scale~~ — **RESOLVED:** 1 unit = 10 cm, **and gravity scaled to 98** (§4.4.1) | Resolved |
 | 6 | Rotation swipe **sensitivity**, and **how the player finishes** rotating (§4.7) — the gesture itself is now decided | Phase 1 |
 | 7 | ~~Panning while a block is selected~~ — **RESOLVED:** auto edge-pan (§6.1) | Resolved |
 | 8 | ~~How deselection works~~ — **RESOLVED:** palette toggle *and* a cancel button (§6.1) | Resolved |

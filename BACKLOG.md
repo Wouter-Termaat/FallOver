@@ -1,7 +1,7 @@
 # Fall Over — Backlog
 
 **Companion to:** `PRD.md` — read that first; it holds the decisions this backlog implements.
-**Last updated:** 2026-07-25 · **Matches PRD:** v0.9
+**Last updated:** 2026-07-25 · **Matches PRD:** v0.10
 
 ---
 
@@ -82,13 +82,14 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 
 `S` under an hour · `M` a few hours · `L` a day or more · `XL` weeks
 
-### Phase 0 — Pipeline and unknowns (9)
+### Phase 0 — Pipeline and unknowns (10)
 
 - [x] **FO-000** · S · Move the repo out of OneDrive and add a remote
 - [x] **FO-001** · S · Create the Godot project skeleton
 - [x] **FO-002** · S · Configure physics for reliability
 - [x] **FO-003** · M · Grey-box test scene with a falling domino chain
 - [x] **FO-008** · M · Determine the unit scale
+- [ ] **FO-019** · M · Scale gravity for diorama physics ⚠️ *before FO-004 and FO-005*
 - [ ] **FO-006** · M · Android export pipeline
 - [ ] **FO-007** · S · Renderer and min-API decisions
 - [ ] **FO-004** · M · Choose the physics backend by measurement
@@ -202,7 +203,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [ ] **FO-112** · L · Initial skin sets
 - [ ] **FO-113** · S · Activate collection achievements
 
-**Total: 90 stories.** FO-022 (inventory levels) was cut when coins became the only constraint model. Phases 0–2 are fully specified with acceptance criteria and file lists. Phases 3–8 are
+**Total: 91 stories.** FO-022 (inventory levels) was cut when coins became the only constraint model. Phases 0–2 are fully specified with acceptance criteria and file lists. Phases 3–8 are
 one-line placeholders — each gets detailed before it's worked, not now, because the game will have changed by
 then.
 
@@ -214,13 +215,16 @@ then.
 investing in gameplay. Deliberately boring. Pipeline problems found now are trivial; found in month
 three they're miserable.
 
-**Exit criterion:** an `.apk` on Wouter's phone showing a physics-driven chain toppling, with measured
-answers for backend, renderer, block ceiling and unit scale.
+**Exit criterion:** an `.apk` on Wouter's phone showing a physics-driven chain toppling that *falls at a
+convincing speed*, with measured answers for backend, renderer, block ceiling, unit scale and gravity.
 
 **⚠️ Execution order is not document order.** Several stories need a working Android build before they
 can be measured. Work them in this order:
 
-> **FO-000 → FO-001 → FO-002 → FO-003 → FO-008 → FO-006 → FO-007 → FO-004 → FO-005**
+> **FO-000 → FO-001 → FO-002 → FO-003 → FO-008 → FO-019 → FO-006 → FO-007 → FO-004 → FO-005**
+
+FO-019 (gravity) sits before FO-004 and FO-005 deliberately — those two *measure* physics, and measuring at the
+wrong gravity produces numbers that have to be discarded.
 
 ---
 
@@ -438,6 +442,36 @@ changing it after twenty levels exist is not.
   slowness comes from Godot's real-gravity assumption acting on a nominally-4-metre object, not from the
   unit-scale choice itself — the unit label doesn't change simulated physics, only how geometry is
   authored and read.
+
+---
+
+### [ ] FO-019 — Scale gravity for diorama physics · M
+
+**Goal:** PRD §4.4.1. Blocks are authored 10× larger than the real objects they represent, so gravity must be
+10× stronger for them to fall at the rate the eye expects. Right now they fall ~3× too slowly — the "a bit slow"
+verdict from Wouter's FO-003 playtest.
+
+**Acceptance criteria:**
+
+- `physics/3d/default_gravity` set to **98** in `project.godot`
+- **Damping values in FO-003 re-tuned from scratch.** The old values were found at 9.8 and are invalid at 98 —
+  do not scale them arithmetically, find them by feel again.
+- **Stability retested at the new gravity.** Impact speeds are ~3× higher, so the solver has less time per tick.
+  Run FO-003's chain at least 20 times and confirm: it still topples end to end, nothing tunnels through the
+  ground or through another block, nothing jitters, everything comes to rest.
+- **If 60 ticks/second proves insufficient**, do *not* silently raise the tick rate — report it. Changing the tick
+  rate changes every physics outcome (PRD §13.1) and is Wouter's call.
+- Wouter confirms on device that the fall speed now reads correctly — this is a feel judgement and cannot be
+  verified in the editor alone
+- `docs/unit-scale.md` updated with the gravity decision and the reasoning, so nobody "corrects" 98 back to 9.8
+  later thinking it's a typo
+
+**Files:** `project.godot`, `scripts/test/domino_chain_test.gd`, `docs/unit-scale.md`
+
+**Blocked by:** FO-008.
+
+**⚠️ Must complete before FO-004 and FO-005.** Those two measure backend stability and the maximum active-body
+count. Measured at 9.8 they produce numbers that are simply wrong for the shipping game.
 
 ---
 
