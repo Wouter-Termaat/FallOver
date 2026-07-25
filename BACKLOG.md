@@ -91,7 +91,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-008** · M · Determine the unit scale
 - [x] **FO-019** · M · Scale gravity for diorama physics ⚠️ *before FO-004 and FO-005* — jitter carried to FO-004
 - [x] **FO-006** · M · Android export pipeline
-- [ ] **FO-007** · S · Renderer and min-API decisions
+- [x] **FO-007** · S · Renderer and min-API decisions — UI aspect check deferred to Phase 4 (no UI yet)
 - [ ] **FO-004** · M · Choose the physics backend by measurement
 - [ ] **FO-005** · S · Establish the rigid body ceiling
 
@@ -560,7 +560,7 @@ instructions, then wait for confirmation at each step rather than assuming succe
 
 ---
 
-### [ ] FO-007 — Renderer and min-API decisions · S
+### [x] FO-007 — Renderer and min-API decisions · S
 
 **Goal:** resolve PRD open decisions #1 and #3.
 
@@ -579,6 +579,34 @@ instructions, then wait for confirmation at each step rather than assuming succe
 are recorded
 
 **Blocked by:** FO-003, FO-006.
+
+**Findings (FO-007):**
+
+- **Renderer: kept Mobile** (Godot's own default for Android), set explicitly in `project.godot` rather
+  than left implicit. Tested both Mobile and Forward+ on Wouter's Pixel 9 Pro XL via two separately-built
+  debug APKs (forcing `rendering/renderer/rendering_method.mobile`), screenshotted via `adb shell
+  screencap` rather than relying on descriptions. Both hit a stable 60fps on this scene — no meaningful
+  differentiator at this scale (15 low-poly boxes is trivial for either renderer on a flagship GPU).
+  **⚠️ Revisit at FO-005** once there's an actual GPU/CPU load worth comparing, and ideally on a lower-end
+  device too.
+- **Depth-texture access confirmed working on both renderers** — this directly answers the water-foam
+  concern in PRD §8.3.2. Built a small depth-visualization shader into FO-003's scene for this (gated
+  behind `show_depth_debug`, off by default). First attempt applied it to the ground plane itself and got
+  a meaningless flat result — a mesh can't reliably read its own not-yet-finished depth write in the same
+  opaque pass. Fixed by moving it to a separate camera-attached quad drawn in the transparent queue, after
+  opaque geometry has already written depth. Recorded as a gotcha in the shader's own comment.
+- **`ProjectSettings.get_setting("rendering/renderer/rendering_method")` does not resolve the `.mobile`
+  platform override at runtime via GDScript** — it returns the base/desktop value regardless of what's
+  actually running. `RenderingServer.get_current_rendering_method()` is the reliable way to check what's
+  really active. Cost some confusion mid-story before catching it (briefly looked like the renderer
+  override wasn't working at all, when it was — only the diagnostic was wrong).
+- **Min API level: 24, unchanged.** Not actually a settable project option here — confirmed via `aapt dump
+  badging` that the non-Gradle export template bakes in `sdkVersion:'24'` regardless of the empty
+  `gradle_build/min_sdk` field (which only applies with a custom Gradle build, not used here). Matches the
+  PRD's own proposal; device-share reasoning and sources in `docs/platform-decisions.md`.
+- **UI aspect-ratio check (4:3–20:9): deferred, not silently dropped.** No real UI exists yet to check —
+  every screen that would need this is Phase 4 work. Flagged in the doc with a note on how to test it
+  later (`adb shell wm size`) once there's something to look at.
 
 ---
 

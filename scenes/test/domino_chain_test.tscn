@@ -4,7 +4,6 @@
 
 [node name="DominoChainTest" type="Node3D"]
 script = ExtResource("1_script")
-show_depth_debug = true
 
 [node name="Ground" type="StaticBody3D" parent="."]
 

@@ -41,9 +41,13 @@ const GROUND_MARGIN: float = 6.0
 const GROUND_WIDTH: float = 10.0
 const GROUND_THICKNESS: float = 1.0
 
+## Applied to a quad parented to the camera, drawn in the transparent queue so
+## it reads the depth buffer *after* all opaque geometry (ground + dominoes)
+## has already written to it — a mesh cannot reliably read its own
+## not-yet-finished depth write, so this cannot be the ground plane itself.
 const DEPTH_DEBUG_SHADER_CODE: String = """
 shader_type spatial;
-render_mode unshaded;
+render_mode unshaded, blend_mix, depth_draw_never, depth_test_disabled, cull_disabled;
 
 uniform sampler2D depth_tex : hint_depth_texture, filter_linear_mipmap;
 
@@ -55,6 +59,7 @@ void fragment() {
 	float linear_depth = -view.z;
 	float normalized = clamp(linear_depth / 60.0, 0.0, 1.0);
 	ALBEDO = vec3(normalized);
+	ALPHA = 1.0;
 }
 """
 
@@ -63,7 +68,6 @@ void fragment() {
 
 var _blocks: Array[RigidBody3D] = []
 var _started: bool = false
-var _ground_mesh: MeshInstance3D
 var _perf_label: Label
 
 
@@ -88,15 +92,23 @@ func _process(_delta: float) -> void:
 		var fps: float = Engine.get_frames_per_second()
 		var frame_ms: float = Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
 		var physics_ms: float = Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
-		var renderer: String = ProjectSettings.get_setting("rendering/renderer/rendering_method")
-		_perf_label.text = "renderer=%s\nfps=%.0f frame=%.2fms physics=%.2fms" % [renderer, fps, frame_ms, physics_ms]
+		var setting: String = ProjectSettings.get_setting("rendering/renderer/rendering_method")
+		var actual: String = RenderingServer.get_current_rendering_method()
+		_perf_label.text = "setting=%s actual=%s\nfps=%.0f frame=%.2fms physics=%.2fms" % [setting, actual, fps, frame_ms, physics_ms]
 
 
 func _build_perf_overlay() -> void:
 	var canvas: CanvasLayer = CanvasLayer.new()
 	add_child(canvas)
+
+	var background: ColorRect = ColorRect.new()
+	background.color = Color(Palette.BLACK, 0.6)
+	background.position = Vector2(12, 12)
+	background.size = Vector2(500, 70)
+	canvas.add_child(background)
+
 	_perf_label = Label.new()
-	_perf_label.position = Vector2(24, 24)
+	_perf_label.position = Vector2(24, 20)
 	_perf_label.add_theme_font_size_override(&"font_size", 28)
 	_perf_label.add_theme_color_override(&"font_color", Palette.WHITE)
 	canvas.add_child(_perf_label)
@@ -107,7 +119,14 @@ func _apply_depth_debug_material() -> void:
 	shader.code = DEPTH_DEBUG_SHADER_CODE
 	var shader_material: ShaderMaterial = ShaderMaterial.new()
 	shader_material.shader = shader
-	_ground_mesh.material_override = shader_material
+
+	var quad: MeshInstance3D = MeshInstance3D.new()
+	var quad_mesh: QuadMesh = QuadMesh.new()
+	quad_mesh.size = Vector2(40.0, 40.0)
+	quad.mesh = quad_mesh
+	quad.material_override = shader_material
+	quad.position = Vector3(0.0, 0.0, -1.0)
+	_camera.add_child(quad)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -183,7 +202,6 @@ func _build_ground() -> void:
 	material_override.albedo_color = Palette.TERRAIN
 	mesh_instance.material_override = material_override
 	_ground.add_child(mesh_instance)
-	_ground_mesh = mesh_instance
 
 	var collision: CollisionShape3D = CollisionShape3D.new()
 	var box_shape: BoxShape3D = BoxShape3D.new()
