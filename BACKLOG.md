@@ -92,7 +92,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-019** · M · Scale gravity for diorama physics ⚠️ *before FO-004 and FO-005* — jitter carried to FO-004
 - [x] **FO-006** · M · Android export pipeline
 - [x] **FO-007** · S · Renderer and min-API decisions — UI aspect check deferred to Phase 4 (no UI yet)
-- [ ] **FO-004** · M · Choose the physics backend by measurement
+- [x] **FO-004** · M · Choose the physics backend by measurement — Jolt fixes the FO-019 jitter
 - [ ] **FO-005** · S · Establish the rigid body ceiling
 
 ### Phase 1 — Core interaction (10)
@@ -610,7 +610,7 @@ are recorded
 
 ---
 
-### [ ] FO-004 — Choose the physics backend by measurement · M
+### [x] FO-004 — Choose the physics backend by measurement · M
 
 **Goal:** resolve PRD open decision #2 with data, not documentation.
 
@@ -638,6 +638,29 @@ are recorded
 never settles — real velocity (~1 m/s), indefinitely, not fixed by more damping/friction (see FO-019
 findings). Specifically check whether Jolt resolves this before recommending GodotPhysics3D by default —
 this is exactly the stacked/resting-body scenario Jolt is documented to help with.
+
+**Findings (FO-004):**
+
+- **Decision: `Jolt Physics`.** Full reasoning and data in `docs/physics-backend-decision.md`.
+- **⚠️ Gotcha that ate significant time: the correct enum value is `"Jolt Physics"` (with a space), not
+  `"JoltPhysics3D"`.** The wrong string is accepted silently with no error and falls back to
+  `GodotPhysics3D` — every early "Jolt" test result was secretly GodotPhysics3D running twice, which
+  looked suspicious (identical output) but wasn't immediately obviously wrong. Caught by checking
+  `ProjectSettings.get_property_list()` for the actual enum values rather than guessing. Verify this the
+  same way if this setting is ever touched again.
+- **Jolt completely resolves the FO-019 jitter** — same scene, same tuning, same gravity. All 15 blocks
+  reach full sleep within ~5 seconds (headless and on-device). GodotPhysics3D, tested the same way, never
+  settles — confirmed both headless (30s) and on **Wouter's Pixel 9 Pro XL** (~27s), where sustained
+  physics cost stayed around 4ms the whole time vs Jolt's ~0.26ms once settled.
+- **Tested on-device without needing manual interaction**: used the `--fo-autostart` cmdline flag already
+  built into FO-003's scene (via `export_presets.cfg`'s `command_line/extra_args`), so both backends could
+  be verified via `adb shell screencap` while unattended.
+- **Determinism confirmed for both backends** (3 repeated headless runs each, bit-identical results aside
+  from wall-clock timing noise) — consistent with PRD §13.1's no-randomness expectation.
+- No tunneling, no crashes, no instability observed under Jolt in any test.
+- Not retested with different damping — Jolt resolved the jitter using FO-019's existing GodotPhysics3D-
+  tuned values as-is. Whether Jolt-specific tuning would feel different is left for on-device feel testing
+  later, not part of this measurement-driven story.
 
 ---
 
