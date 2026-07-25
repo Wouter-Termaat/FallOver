@@ -90,7 +90,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-003** · M · Grey-box test scene with a falling domino chain
 - [x] **FO-008** · M · Determine the unit scale
 - [x] **FO-019** · M · Scale gravity for diorama physics ⚠️ *before FO-004 and FO-005* — jitter carried to FO-004
-- [ ] **FO-006** · M · Android export pipeline
+- [x] **FO-006** · M · Android export pipeline
 - [ ] **FO-007** · S · Renderer and min-API decisions
 - [ ] **FO-004** · M · Choose the physics backend by measurement
 - [ ] **FO-005** · S · Establish the rigid body ceiling
@@ -507,7 +507,7 @@ count. Measured at 9.8 they produce numbers that are simply wrong for the shippi
 
 ---
 
-### [ ] FO-006 — Android export pipeline · M
+### [x] FO-006 — Android export pipeline · M
 
 **Goal:** get an `.apk` onto a physical phone. The single most important story in Phase 0.
 
@@ -534,6 +534,29 @@ un-ignore it and keep secrets in a separate ignored keystore file, or record set
 
 **Note for whoever does this:** most of this story is Wouter installing things on Windows. Write the
 instructions, then wait for confirmation at each step rather than assuming success.
+
+**Findings (FO-006):**
+
+- **Decision on `export_presets.cfg`: committed, not gitignored.** Debug-only pipeline uses Android's
+  standard public debug keystore credentials — nothing secret to protect. Full reasoning in
+  `docs/build-android.md`.
+- Wrong JDK installed on the first attempt (26, not 17) because Adoptium's site defaulted to "latest."
+  Godot's Android Gradle build specifically requires 17. Recorded in the doc so it isn't repeated.
+- **Android export hard-fails without ETC2/ASTC texture compression enabled** — added
+  `rendering/textures/vram_compression/import_etc2_astc = true` to `project.godot`. Not something the
+  export dialog warns about until you try to export.
+- **`adb shell monkey -c LAUNCHER` silently did nothing** — command exits with no error but never brings
+  the app to the foreground. Root cause: Godot's non-Gradle Android export uses the launcher component
+  `com.godot.game.GodotAppLauncher`, not the more obvious-looking `com.godot.game.GodotApp` (which exists
+  but isn't exported, and throws a `SecurityException` if targeted directly). Use
+  `adb shell cmd package resolve-activity --brief <package>` to find the real one rather than guessing.
+- Verified end to end on **Wouter's Google Pixel 9 Pro XL, Android 17 (SDK 37), arm64-v8a**: debug APK
+  built via command line, installed, launched FO-003's chain (temporarily set as the project's main scene
+  for this test, then reverted to the FO-001 placeholder), and **touch input confirmed working** — tapping
+  the screen triggers the impulse and the chain topples, same as desktop.
+- **The FO-019 jitter reproduces on-device, not just headless.** Confirms it's a real physics behaviour,
+  not a headless-simulation artifact. Still tracked as a carry-over check for FO-004 (test whether Jolt
+  resolves it), not something this story needed to fix.
 
 ---
 

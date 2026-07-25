@@ -28,7 +28,8 @@ window/handheld/orientation=1
 common/physics_ticks_per_second=60
 common/max_physics_steps_per_frame=8
 common/physics_interpolation=true
+3d/default_gravity=98.0
 
-[physics/3d]
+[rendering]
 
-default_gravity=98.0
+textures/vram_compression/import_etc2_astc=true
