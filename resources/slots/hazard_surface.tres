@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ObstacleSlot" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/obstacle_slot.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+slot_name = "hazard_surface"
+footprint = Vector2(6, 6)
+height = 1.0
+collision_layer = 2
+grey_box_color = Color(0.458824, 0.694118, 0.796078, 1)

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ThemeKit" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/theme_kit.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_PineTree"]
+albedo_color = Color(0.164706, 0.4, 0.184314, 1)
+
+[sub_resource type="CylinderMesh" id="Mesh_PineTree"]
+material = SubResource("Mat_PineTree")
+top_radius = 0.4
+bottom_radius = 1.0
+height = 6.0
+
+[resource]
+script = ExtResource("1_script")
+theme_name = "Grass (stub)"
+slot_models = {
+"tall_obstacle": SubResource("Mesh_PineTree")
+}

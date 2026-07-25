@@ -111,7 +111,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 ### Phase 1.5 — Level authoring foundations (2)
 
 - [x] **FO-030** · M · Modular kit piece system ⭐ *unblocks level design*
-- [ ] **FO-031** · M · Obstacle slots and theme kits
+- [x] **FO-031** · M · Obstacle slots and theme kits
 
 ### Phase 2 — A complete level (12)
 
@@ -1233,7 +1233,7 @@ whenever a level needs a shape that isn't a box.
 
 ---
 
-### [ ] FO-031 — Obstacle slots and theme kits · M
+### [x] FO-031 — Obstacle slots and theme kits · M
 
 **Goal:** PRD §7.11 — levels reference semantic slots; worlds map slots to models.
 
@@ -1268,6 +1268,14 @@ bridge · hazard surface · prop/decoration. Between them they cover blocking th
 a gap, and danger — every puzzle idea planned for worlds 1 and 2. Grow on demand only.
 
 The *models* each theme maps them to are Phase 5 work (FO-073); this story only needs grey-box primitives.
+
+**Findings:** Verified the one absolute rule directly — instanced `tall_obstacle` under the grey-box kit and
+a stub "grass" kit (maps it to a placeholder pine-tree `CylinderMesh`), confirmed the collision shape and
+layer are byte-identical between them while the visual correctly differs. **Found and fixed a real bug in
+the process:** the model-swap code used `queue_free()` on the old model before adding the new one —
+`queue_free()` is deferred to end-of-frame, so setting `slot` then `theme_kit` in rapid succession (e.g.
+from the Inspector) could leave both the old and new model present simultaneously. Fixed with immediate
+`remove_child()` + `free()`. Not tested visually in the editor — headless only.
 
 ---
 
