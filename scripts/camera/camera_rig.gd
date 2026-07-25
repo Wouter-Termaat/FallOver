@@ -105,7 +105,16 @@ func _read_bounds() -> void:
 	_current_focus = center
 
 
+## FO-025: the opening fly-through moves the camera through two authored
+## positions directly, not by orbiting a focus — a different model
+## entirely, not something run_mode's target/damping fits. Suspending here
+## is simpler than teaching this rig two unrelated update strategies.
+@export var suspended: bool = false
+
+
 func _process(delta: float) -> void:
+	if suspended:
+		return
 	# Presentation only, not gameplay logic — frame-rate-dependent smoothing
 	# here is fine (CLAUDE.md hard rule 1 concerns gameplay outcomes).
 	var orbit_t: float = 1.0 - exp(-orbit_damping * delta)

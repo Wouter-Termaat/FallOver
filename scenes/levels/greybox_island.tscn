@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/camera/run_camera.gd" id="5_run_camera"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="6_game_hud"]
 [ext_resource type="Script" path="res://scripts/simulation/win_condition.gd" id="7_win_condition"]
+[ext_resource type="Script" path="res://scripts/camera/level_intro_camera.gd" id="8_level_intro_camera"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_Ground"]
 albedo_color = Color(0.509804, 0.729412, 0.380392, 1)
@@ -135,6 +136,21 @@ surface_material_override/0 = SubResource("Mat_Finish")
 [node name="GameHud" parent="UI" node_paths=PackedStringArray("run_controller") instance=ExtResource("6_game_hud")]
 run_controller = NodePath("../../RunController")
 
+[node name="SkipIntroButton" type="Button" parent="UI"]
+visible = false
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -280.0
+offset_right = -16.0
+offset_bottom = -216.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "Skip"
+
 [node name="PlacementController" type="Node3D" parent="." node_paths=PackedStringArray("camera_rig", "palette")]
 script = ExtResource("3_placement_controller")
 camera_rig = NodePath("../CameraRig")
@@ -156,3 +172,18 @@ camera_rig = NodePath("../CameraRig")
 script = ExtResource("7_win_condition")
 run_controller = NodePath("../RunController")
 victory_area = NodePath("../Victory")
+
+[node name="LevelIntroCamera" type="Node" parent="." node_paths=PackedStringArray("camera_rig", "placement_controller", "skip_button")]
+script = ExtResource("8_level_intro_camera")
+camera_rig = NodePath("../CameraRig")
+placement_controller = NodePath("../PlacementController")
+skip_button = NodePath("../UI/SkipIntroButton")
+position_a = Vector3(3, 18, 24)
+look_at_a = Vector3(10, 0, 0)
+size_a = 34.0
+position_b = Vector3(26, 10, -14)
+look_at_b = Vector3(26, 2, 0)
+size_b = 20.0
+duration = 3.0
+
+[connection signal="pressed" from="UI/SkipIntroButton" to="LevelIntroCamera" method="skip"]

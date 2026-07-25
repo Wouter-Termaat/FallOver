@@ -118,7 +118,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-020** · M · Level and world definition resources
 - [x] **FO-021** · M · Coins — the level constraint
 - [x] **FO-023** · M · Finish, win detection and fail state
-- [ ] **FO-025** · M · Opening fly-through
+- [x] **FO-025** · M · Opening fly-through
 - [ ] **FO-027** · M · Save system
 - [ ] **FO-024** · S · Stars
 - [ ] **FO-026** · M · Win and fail screens
@@ -1463,7 +1463,7 @@ without the save system, so the save schema comes first.
 
 ---
 
-### [ ] FO-025 — Opening fly-through · M
+### [x] FO-025 — Opening fly-through · M
 
 **Goal:** PRD §6.4 — the camera sweep that teaches the level before the player builds.
 
@@ -1484,6 +1484,14 @@ without the save system, so the save schema comes first.
 **Decided** (PRD §6.4, open #12 resolved): the sweep **plays every time**, including on levels already completed,
 and is **always skippable with one tap**. Consistent behaviour, one less rule. Only exception is resuming a level
 mid-build (FO-029), where it is suppressed.
+
+**Findings:** An authored two-position sweep isn't "orbit a focus point" — a genuinely different camera
+model from CameraRig's, so rather than teaching the rig two unrelated update strategies, `LevelIntroCamera`
+fully suspends it (a new `CameraRig.suspended` flag skipping its `_process()` entirely) and drives the
+`Camera3D` node directly for the duration. Smoothstep easing, no snap at either end. `suppress()` is the
+FO-029 hook, called before `play()` to skip the sweep and emit `finished` immediately. Verified headless:
+auto-plays on scene load (placement input disabled, CameraRig suspended), and both skip and suppress
+correctly restore normal control. Not tested visually — the actual sweep motion needs your eyes.
 
 ---
 
