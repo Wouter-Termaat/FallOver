@@ -75,6 +75,140 @@ stories can be inserted without renumbering.
 
 ---
 
+## Story index
+
+Every story in the project, in execution order. **This is the list to work from.** Detail for each lives in the
+phase sections below. Tick a box here *and* in the story itself when it's done.
+
+`S` under an hour · `M` a few hours · `L` a day or more · `XL` weeks
+
+### Phase 0 — Pipeline and unknowns (9)
+
+- [x] **FO-000** · S · Move the repo out of OneDrive and add a remote
+- [x] **FO-001** · S · Create the Godot project skeleton
+- [ ] **FO-002** · S · Configure physics for reliability
+- [ ] **FO-003** · M · Grey-box test scene with a falling domino chain
+- [ ] **FO-008** · M · Determine the unit scale
+- [ ] **FO-006** · M · Android export pipeline
+- [ ] **FO-007** · S · Renderer and min-API decisions
+- [ ] **FO-004** · M · Choose the physics backend by measurement
+- [ ] **FO-005** · S · Establish the rigid body ceiling
+
+### Phase 1 — Core interaction (10)
+
+- [ ] **FO-009** · M · Grey-box island scene
+- [ ] **FO-010** · S · Block definition resource
+- [ ] **FO-011** · M · Camera rig — orbit, pan, zoom, 45° snap
+- [ ] **FO-012** · S · Block palette UI
+- [ ] **FO-013** · L · Selection-driven placement input ⚠️ *highest risk in the project*
+- [ ] **FO-014** · M · Edit and remove placed blocks
+- [ ] **FO-015** · L · Run the simulation with a zoom-to-fit camera ⚠️ *biggest "feels cheap" risk*
+- [ ] **FO-017** · M · Undo and redo history
+- [ ] **FO-018** · S · Clear all
+- [ ] **FO-016** · M · Reset to the standing layout
+
+### Phase 1.5 — Level authoring foundations (2)
+
+- [ ] **FO-030** · M · Modular kit piece system ⭐ *unblocks level design*
+- [ ] **FO-031** · M · Obstacle slots and theme kits
+
+### Phase 2 — A complete level (13)
+
+- [ ] **FO-020** · M · Level and world definition resources
+- [ ] **FO-021** · M · Coins — the level constraint
+- [ ] **FO-022** · S · Inventory constraint model
+- [ ] **FO-023** · M · Finish, win detection and fail state
+- [ ] **FO-025** · M · Opening fly-through
+- [ ] **FO-027** · M · Save system
+- [ ] **FO-024** · S · Stars
+- [ ] **FO-026** · M · Win and fail screens
+- [ ] **FO-029** · M · Mid-build save and resume
+- [ ] **FO-032** · M · Record a reference solution by playing
+- [ ] **FO-033** · S · Level reassignment validation
+- [ ] **FO-034** · S · Derive coin budgets and star thresholds
+- [ ] **FO-028** · M · Author level 1-1 with a reference solution
+
+### Phase 3 — Blocks and branching (9)
+
+- [ ] **FO-040** · M · Ball block
+- [ ] **FO-041** · S · Cylinder block
+- [ ] **FO-042** · S · Per-block-type placement rules
+- [ ] **FO-043** · L · Branching — switches and gates
+- [ ] **FO-044** · M · Branch failure feedback
+- [ ] **FO-045** · M · Run camera with multiple active fronts
+- [ ] **FO-046** · M · Evaluate candidate blocks
+- [ ] **FO-047** · S · Price balancing pass
+- [ ] **FO-048** · M · Run replay or slow-motion review *(optional)*
+
+### Phase 4 — Progression, economy and meta screens (14)
+
+- [ ] **FO-050** · M · Logo splash and main menu
+- [ ] **FO-051** · M · World map
+- [ ] **FO-052** · M · Level select with rolling reveal window ⚠️ *only safety net for stuck players*
+- [ ] **FO-053** · S · Star gating
+- [ ] **FO-054** · S · Block unlock progression
+- [ ] **FO-055** · S · Diamond payouts for stars
+- [ ] **FO-056** · L · Achievements
+- [ ] **FO-057** · S · Diamond balance and skin roadmap
+- [ ] **FO-058** · S · Settings screen
+- [ ] **FO-059** · M · Tutorial prompts on level 1-1
+- [ ] **FO-035** · M · Level authoring workflow documented ⭐ *pays for itself many times over*
+- [ ] **FO-036** · M · Automated fragility testing
+- [ ] **FO-037** · L · In-game authoring mode *(only after ~5 levels exist)*
+- [ ] **FO-060** · M · Difficulty curve pass
+
+### Phase 5 — Art, audio and haptics (14)
+
+- [ ] **FO-070** · M · Source the modular kit
+- [ ] **FO-071** · M · Model and material import pipeline
+- [ ] **FO-072** · L · Replace kit and slot placeholders with real art
+- [ ] **FO-073** · L · Theme kits for Grass and Desert
+- [ ] **FO-074** · M · Block visuals
+- [ ] **FO-075** · S · Colour accessibility
+- [ ] **FO-076** · S · Logo and wordmark
+- [ ] **FO-077** · L · UI visual pass
+- [ ] **FO-078** · M · Lighting and shadow pass ⚠️ *shadows are gameplay, not polish*
+- [ ] **FO-079** · M · Impact sounds ⭐ *highest return per hour in this phase*
+- [ ] **FO-080** · S · Music and run-time ducking
+- [ ] **FO-081** · S · Ambient sound
+- [ ] **FO-082** · S · Haptics
+- [ ] **FO-083** · M · Particles and juice on the run
+
+### Phase 6 — Content (9)
+
+- [ ] **FO-090** · S · Distribute the four launch mechanics across the two worlds
+- [ ] **FO-091** · XL · Author 20 levels ⭐ *the slowest work in the project*
+- [ ] **FO-092** · M · Balance coin budgets and star thresholds
+- [ ] **FO-093** · S · Set cumulative star gate thresholds
+- [ ] **FO-094** · S · Set diamond payouts and achievement values
+- [ ] **FO-095** · S · Tune the reveal window size
+- [ ] **FO-096** · M · Every level passes fragility testing
+- [ ] **FO-097** · S · Place optional props for discovery achievements
+- [ ] **FO-098** · S · Audit each world's "one new idea"
+
+### Phase 7 — Release (7)
+
+- [ ] **FO-100** · M · Decide and implement the business model
+- [ ] **FO-101** · M · Release signing and Play Store listing
+- [ ] **FO-102** · M · Store assets
+- [ ] **FO-103** · S · Confirm the localisation table
+- [ ] **FO-104** · S · Crash reporting
+- [ ] **FO-105** · M · Performance pass on low-end devices
+- [ ] **FO-106** · L · Playtesting with people who are not Wouter ⚠️ *not optional*
+
+### Phase 8 — Update 1: skins and the shop (4)
+
+- [ ] **FO-110** · S · Skin set data model
+- [ ] **FO-111** · M · Skins shop screen
+- [ ] **FO-112** · L · Initial skin sets
+- [ ] **FO-113** · S · Activate collection achievements
+
+**Total: 91 stories.** Phases 0–2 are fully specified with acceptance criteria and file lists. Phases 3–8 are
+one-line placeholders — each gets detailed before it's worked, not now, because the game will have changed by
+then.
+
+---
+
 ## Phase 0 — Pipeline and unknowns
 
 **Goal:** prove we can get a build onto a real Android phone, and settle the technical unknowns *before*
@@ -91,7 +225,7 @@ can be measured. Work them in this order:
 
 ---
 
-### [ ] FO-000 — Move the repo out of OneDrive and add a remote · S
+### [x] FO-000 — Move the repo out of OneDrive and add a remote · S
 
 **Goal:** stop the project living somewhere that can corrupt it. PRD §2.2.
 
@@ -111,7 +245,7 @@ can be measured. Work them in this order:
 
 ---
 
-### [ ] FO-001 — Create the Godot project skeleton · S
+### [x] FO-001 — Create the Godot project skeleton · S
 
 **Goal:** an empty but correctly configured Godot 4.7 project with the structure the rest of the backlog
 assumes.
@@ -161,6 +295,9 @@ assumes.
   - the hard rule: gameplay logic never in `_process`, only `_physics_process`
 
 **Files:** `project.godot`, `docs/physics-rules.md`
+
+**Note learned in FO-001:** Godot **strips hand-written comments from `project.godot`** when it saves. Do not
+rely on comments in that file to record decisions — put the reasoning in `docs/` and reference it there.
 
 **Blocked by:** FO-001.
 
@@ -1104,87 +1241,82 @@ retuning silently ships unsolvable levels.
 
 **Goal:** the mechanics that make puzzles interesting rather than merely long.
 
-- Ball block — rolls with drag; crosses gaps, runs down slopes (PRD §4.4). **Its damping values are found here**,
-  the way FO-003 found the standard block's (PRD open #31) — rolling bodies are the hardest case for the
-  run-end rules in PRD §4.9.2, so tune and verify them together.
-- Cylinder block — rolls with drag on one axis, damping tuned alongside the ball. **Note FO-004:** if Jolt was
-  chosen partly for cylinder handling, this is where that pays off or doesn't.
-- Per-block-type placement rules: slopes, water. **Not stacking** — forbidden by PRD §4.7.
-- **Branching chains** (PRD §4.3): switches, gates and enabling side-chains. Main chain still
-  start → finish; branches are prerequisites.
-- Failure feedback extended to identify *which* branch stalled
-- Run camera exercised with genuinely multiple active fronts — FO-015's fit logic gets its real test, and
-  the minimum-zoom clamp gets its first real argument
-- Candidate blocks evaluated: Turnaround, Slow, Heavy, Bridge, Rope, Fragile — **needs PRD open #13, #14,
-  #15**
-- Price balancing pass across the catalogue
-- Possible: replay or slow-motion review (PRD open #16) — more valuable once branching exists, because the
-  player may have been watching the wrong place
+Stories are one-liners for now; each gets acceptance criteria and a file list before it's worked.
+
+- **[ ] FO-040 — Ball block · M** — rolls with drag, crosses gaps, runs down slopes (PRD §4.4). **Its damping
+  values are found here**, the way FO-003 found the standard block's (PRD open #31). Rolling bodies are the
+  hardest case for the run-end rules in PRD §4.9.2, so tune and verify them together.
+- **[ ] FO-041 — Cylinder block · S** — rolls with drag on one axis, damping tuned alongside the ball.
+  **Note FO-004:** if Jolt was chosen partly for cylinder handling, this is where that pays off or doesn't.
+- **[ ] FO-042 — Per-block-type placement rules · S** — which types may sit on slopes, in water, and so on.
+  **Not stacking** — forbidden by PRD §4.7.
+- **[ ] FO-043 — Branching: switches and gates · L** — enabling side-chains per PRD §4.3. Main chain still runs
+  start → finish; branches are prerequisites, not parallel goals.
+- **[ ] FO-044 — Branch failure feedback · M** — extend FO-023 so a failed run identifies *which* branch stalled,
+  not just that it failed.
+- **[ ] FO-045 — Run camera with multiple active fronts · M** — FO-015's fit logic gets its real test, and the
+  maximum orthographic-size clamp gets its first real argument.
+- **[ ] FO-046 — Evaluate candidate blocks · M** — Turnaround, Slow, Heavy, Bridge, Rope, Fragile. **Needs PRD
+  open #13, #14, #15.** Expect to cut some; a block that doesn't create a distinct puzzle idea is clutter.
+- **[ ] FO-047 — Price balancing pass · S** — across the whole catalogue, once the block set is settled.
+- **[ ] FO-048 — Run replay or slow-motion review · M** — *optional* (PRD open #16). More valuable once
+  branching exists, because the player may have been watching the wrong part of the island.
 
 ---
 
 ## Phase 4 — Progression, economy and meta screens
 
-**Goal:** the game around the levels. **Roughly a third of the project's UI work sits here** (PRD §9) —
-plan it as real work, not an afterthought.
+**Goal:** the game around the levels. **Roughly a third of the project's UI work sits here** (PRD §9) — plan it
+as real work, not an afterthought.
 
-**Read PRD §5.3.1 before building level select.** The reveal window, cumulative world gating and the
-no-hints decision are load-bearing for each other. Narrowing the reveal window reinstates a hard wall for
-stuck players and would require adding hints or a skip in the same change.
+**Read PRD §5.3.1 before building level select.** The reveal window, cumulative world gating and the no-hints
+decision are load-bearing for each other. Narrowing the reveal window reinstates a hard wall for stuck players
+and would require adding hints or a skip in the same change.
 
-**App flow** (PRD §9.1)
+**App flow and navigation**
 
-- **Logo splash → main menu → world map → level select → level.** Every screen has an unambiguous way back;
-  nothing is a dead end.
-- **Splash** — brief and tap-skippable. Plain Roboto wordmark until the logo exists (PRD §8.2, open #32).
-- **Main menu** (PRD §9.2) — Play/Continue, Settings, Achievements & diamonds. *Continue* resumes a level
-  left mid-build (FO-029). **The shop preview is not on the main menu** — nothing is buyable at launch, so
-  it lives inside the achievements/diamonds screen.
-
-**Navigation and progression**
-
-- **World map** — cloud-covered overview, worlds revealed as reached, and **cumulative star progress
-  toward the next gate shown**; a gate the player can't see progress toward feels arbitrary (PRD §7.6)
-- **Level select with a rolling reveal window** (PRD §7.7) — ten island nodes per world, dotted-line
-  route, stars per node. Reveals everything up to *(highest completed + 3)*, and **levels are playable out
-  of order** so a stuck player can detour. The window size must be a config value, not a literal — it's
-  tuned in Phase 6 (**PRD open #28**). **This is the game's only safety net for stuck players; do not
-  narrow it without reading PRD §5.3.1.**
-- **Star gating** (PRD §5.3): 1 star to advance a level, cumulative totals for the next world and for
-  bonus levels. Build the system with thresholds in config; **PRD open #18** sets the numbers in Phase 6.
-  Read **PRD §5.3.1** first — it documents why this does *not* solve the stuck-player problem.
-- **Block unlock progression** — worlds grant types permanently; levels still restrict (PRD §4.5)
+- **[ ] FO-050 — Logo splash and main menu · M** — PRD §9.1, §9.2. Splash brief and tap-skippable, plain Roboto
+  wordmark until FO-076. Main menu: Play/Continue, Settings, Achievements & diamonds. *Continue* resumes a level
+  left mid-build (FO-029). **No shop preview on the main menu** — nothing is buyable at launch.
+- **[ ] FO-051 — World map · M** — cloud-covered overview, worlds revealed as reached, and **cumulative star
+  progress toward the next gate shown**. A gate the player can't see progress toward feels arbitrary (PRD §7.6).
+- **[ ] FO-052 — Level select with rolling reveal window · M** — PRD §7.7. Ten island nodes per world,
+  dotted-line route, stars per node. Reveals up to *(highest completed + 3)*, **playable out of order** so a
+  stuck player can detour. Window size is a **config value, not a literal** (tuned in FO-095, PRD open #28).
+  **This is the game's only safety net for stuck players.**
+- **[ ] FO-053 — Star gating · S** — PRD §5.3. 1 star to advance a level; cumulative totals for the next world
+  and for bonus levels. Thresholds in config; FO-093 sets the numbers.
+- **[ ] FO-054 — Block unlock progression · S** — worlds grant types permanently, levels still restrict
+  (PRD §4.5).
 
 **Economy**
 
-- **FO-042 — diamond payouts for stars.** Each star pays diamonds the first time only; claimed payouts are
-  tracked so re-earning pays nothing (PRD §5.4). Plugs into the insertion point left in FO-026.
-- **Achievements** — all four categories: milestone counters, mastery challenges, discovery, collection
-  (PRD §5.7). Milestones come nearly free from existing stats; discovery ones can't be written until
+- **[ ] FO-055 — Diamond payouts for stars · S** — each star pays diamonds the first time only; claimed payouts
+  tracked so re-earning pays nothing (PRD §5.4). Plugs into the insertion point left in FO-026. Values in a
+  config resource — FO-094 fills them in.
+- **[ ] FO-056 — Achievements · L** — all four categories: milestone counters, mastery challenges, discovery,
+  collection (PRD §5.7). Milestones come nearly free from existing stats; discovery ones can't be written until
   levels contain things to discover. **Needs PRD open #20.**
-- **Diamond balance display**, and a **named roadmap of upcoming skin sets** — text and lock icons, no art,
-  **no prices** (PRD §5.5). Prices can't be set until the economy is balanced against real play, and a
-  price shown then changed is worse than no price. Do not build a shop grid.
-- **Needs PRD open #19** for payout figures — which is a Phase 6 decision, so build the payout *system*
-  here with values in a config resource and fill the numbers in later.
+- **[ ] FO-057 — Diamond balance and skin roadmap · S** — balance display plus a **named list of upcoming skin
+  sets**: text and lock icons, **no art, no prices** (PRD §5.5). Prices can't be set until the economy is
+  balanced, and a price shown then changed is worse than none. **Do not build a shop grid.**
 
 **Other**
 
-- **Settings** — audio, **haptics toggle**, graphics, tutorial progress, reset progress
-- Tutorial: guided walkthrough on level 1-1 with explicit prompts (PRD §7.8) — **needs PRD open #21**
-- **FO-035 — level authoring workflow documented** end to end: assemble an island from kit pieces, place
-  obstacle slots, set the starter and finish, record a reference solution, derive thresholds, validate. Written
-  so building a level is fast and repeatable. **This pays for itself many times over across 20 levels — do not
-  skip it.**
-- **FO-036 — automated fragility testing** — run every level's recorded reference solution 200× headless, flag
-  any level that ever fails (PRD §13.1 item 5). Depends on FO-032's recorded solutions.
-- **FO-037 — in-game authoring mode** (PRD §7.10.2) — place kit pieces and obstacle slots with the player's own
-  controls, in the player's orthographic view, with a parameter panel and instant test. Much of it already
-  exists: placement, rotation, snapping, camera, undo and clear-all are all built for the player in Phase 1.
-  **Build this only after ~5 levels have been made in the Godot editor** (PRD open #36), so the tool addresses
-  real friction rather than guessed friction. Keep controls and the level format reusable in case a
-  player-facing editor ever happens.
-- Difficulty curve pass — **needs PRD open #17**
+- **[ ] FO-058 — Settings screen · S** — audio, **haptics toggle**, graphics, tutorial progress, reset progress.
+- **[ ] FO-059 — Tutorial prompts on level 1-1 · M** — guided walkthrough with explicit prompts (PRD §7.8).
+  **Needs PRD open #21** for whether later mechanics get first-time prompts too.
+- **[ ] FO-035 — Level authoring workflow documented · M** — end to end: assemble an island from kit pieces,
+  place obstacle slots, set the starter and finish, record a reference solution, derive thresholds, validate.
+  **This pays for itself many times over across 20 levels — do not skip it.**
+- **[ ] FO-036 — Automated fragility testing · M** — run every level's recorded reference solution 200×
+  headless, flag any level that ever fails (PRD §13.1 item 5). Depends on FO-032's recorded solutions.
+- **[ ] FO-037 — In-game authoring mode · L** — PRD §7.10.2. Place kit pieces and obstacle slots with the
+  player's own controls, in the player's orthographic view, with a parameter panel and instant test. Much
+  already exists: placement, rotation, snapping, camera, undo and clear-all are all built in Phase 1. **Build
+  only after ~5 levels have been made in the Godot editor** (PRD open #36), so it addresses real friction rather
+  than guessed friction. Keep controls and the level format reusable in case a player-facing editor happens.
+- **[ ] FO-060 — Difficulty curve pass · M** — **needs PRD open #17.**
 
 **Not here:** the skins shop (Phase 8, since skins are deferred). Plate collection (cut, PRD §5.8).
 
@@ -1194,83 +1326,89 @@ stuck players and would require adding hints or a skip in the same change.
 
 **Goal:** replace grey boxes with the stylised low-poly look from the prototype.
 
-- Resolve art sourcing (PRD §8.6, open #22) — **start by checking whether the original Unity pack's source
-  meshes and licence permit reuse.** Hours of work versus weeks, so check before deciding anything else.
-- **What's needed is a modular kit plus theme kits, not a general asset library** (PRD §7.10.1, §7.11). Judge
-  candidate packs on whether pieces tile cleanly on a grid, not on how pretty their screenshots are.
-- **Heightmap terrain plugins are rejected** (PRD §8.6) — built for kilometre-scale landscapes, can't do
-  overhangs, fight the low-poly look, and the current Terrain3D stable is documented against Godot 4.4–4.6+
-  rather than 4.7. Do not reopen without a reason.
-- Model and material import pipeline
-- **Replace grey-box kit pieces and slot placeholders with real art.** Because collision lives on the piece and
-  the slot (PRD §7.11), this swaps art without disturbing a single tuned level — **verify that claim explicitly**
-  by re-running fragility tests (FO-036) after the swap.
-- Theme kits for Grass and Desert: one model per slot per theme
-- Block visuals proper
-- **Colour accessibility** (PRD §8.7, open #23) — decide here, because the cheapest fix is making the
-  starter and finish differ in *silhouette*, and that's free if chosen while the art is being made rather
-  than bolted on afterwards
-- **Logo and wordmark** (PRD §8.2, open #32) — built from the established palette and Roboto. Replaces the
-  placeholder text on the splash and main menu.
-- **UI visual pass to the style in PRD §8.2** — clean, flat, rounded, playful. Chunky thumb-sized buttons
-  with a little squash on press; flat palette fills, no gradients, no skeuomorphism. The islands are the
+- **[ ] FO-070 — Source the modular kit · M** — PRD §8.6, open #22 and #33. **What's needed is a modular kit
+  plus theme kits, not a general asset library** (PRD §7.10.1, §7.11). Judge candidate packs on whether pieces
+  tile cleanly on a grid, not on how pretty the screenshots are. **Heightmap terrain plugins are rejected** —
+  built for kilometre-scale landscapes, can't do overhangs, fight the low-poly look. Don't reopen without reason.
+- **[ ] FO-071 — Model and material import pipeline · M** — how a `.glb` becomes a usable kit piece or slot
+  model, documented and repeatable.
+- **[ ] FO-072 — Replace kit and slot placeholders with real art · L** — because collision lives on the piece
+  and the slot (PRD §7.11), this swaps art without disturbing a single tuned level. **Verify that claim
+  explicitly** by re-running FO-036's fragility tests after the swap.
+- **[ ] FO-073 — Theme kits for Grass and Desert · L** — one model per slot per theme (PRD §7.11).
+- **[ ] FO-074 — Block visuals · M** — plain coloured blocks, no pips (PRD §8.1). Must read at every zoom.
+- **[ ] FO-075 — Colour accessibility · S** — PRD §8.7, open #23. **Decide here**, because the cheapest fix is
+  making the starter and finish differ in *silhouette*, and that's free while the art is being made rather than
+  bolted on afterwards.
+- **[ ] FO-076 — Logo and wordmark · S** — PRD §8.2, open #32. Built from the established palette and Roboto.
+  Replaces the placeholder text on the splash and main menu.
+- **[ ] FO-077 — UI visual pass · L** — the style in PRD §8.2: clean, flat, rounded, playful. Chunky thumb-sized
+  buttons with a little squash on press; flat palette fills; no gradients, no skeuomorphism. The islands are the
   pretty part; the UI stays out of the way.
-- **Lighting must preserve clear ground-contact shadows** (PRD §8.1). Orthographic projection means shadows
-  are the player's only reliable depth cue, so any lighting change that softens block-to-ground contact is a
-  gameplay regression. Verify placement legibility on device after the lighting pass, not just in editor.
-- Art must read correctly from **all eight 45° camera angles** (PRD §6.2), since those are the only angles
-  the player can settle on
-- Lighting and shadow pass — shadows help players judge spacing, so this is gameplay, not polish
-- **Audio** (PRD §10): impact sounds pitch- and volume-driven by impact force; Wouter's existing music — one
-  theme with a variant per world; **music ducks to a low background level during the run** so the impacts
-  come through, and returns afterwards; ambient sound (water, wind, birds); UI sounds including the
-  clear-all confirmation. Any audio randomness must be seeded and outside the physics path (PRD §13.1
-  item 3). **Do not leave audio to the end** — the clacks change how the core loop *feels*, not just how it
-  sounds.
-- **Haptics** (PRD §6.5): subtle vibration on impacts and UI, driven by the same force value as the audio.
-  Settings toggle required. Cheap, and a disproportionate return on feel.
-- Particles and juice on the run
+- **[ ] FO-078 — Lighting and shadow pass · M** — **must preserve clear ground-contact shadows** (PRD §8.1).
+  Orthographic projection means shadows are the player's only reliable depth cue, so softening block-to-ground
+  contact is a *gameplay regression*, not an art choice. Verify placement legibility on device, not in editor.
+  Art must also read correctly from **all eight 45° camera angles** (PRD §6.2) — the only angles the player can
+  settle on.
+- **[ ] FO-079 — Impact sounds · M** — pitch and volume driven by impact force (PRD §10). **Do not leave audio
+  to the end** — the clacks change how the core loop *feels*, not just how it sounds. Highest return per hour
+  of any story in this phase.
+- **[ ] FO-080 — Music and run-time ducking · S** — Wouter's existing theme with a variant per world; **ducks
+  to a low background level during the run** so impacts come through, and returns afterwards (PRD §10).
+- **[ ] FO-081 — Ambient sound · S** — water, wind, birds. Optional but high value for the money (PRD §10).
+- **[ ] FO-082 — Haptics · S** — PRD §6.5. Subtle vibration on impacts and UI, driven by the same force value as
+  the audio. Settings toggle required (FO-058).
+- **[ ] FO-083 — Particles and juice on the run · M** — dust on impact, a flourish on the win. Last, and only
+  once everything above reads correctly.
 
-**Not here:** skins (Phase 8).
+**Not here:** skins (Phase 8). Any audio randomness must be seeded and kept outside the physics path
+(PRD §13.1 item 3).
 
 ---
 
 ## Phase 6 — Content
 
-**Goal:** 20 levels across Grass and Desert (PRD §7.3).
+**Goal:** 20 levels across Grass and Desert (PRD §7.3). **This is the slowest work in the project and the part
+only Wouter can do.**
 
-- Distribute the four launch mechanics across the two worlds — **needs PRD open #17**
-- Author 20 levels, each with a **recorded** reference solution (FO-032) passing at the established tolerance
-- Reorder levels freely as the difficulty curve emerges — theme re-dresses automatically (PRD §7.10.5), and
-  FO-033 validates that no level lands in a world missing the blocks it needs
-- Grow the kit and slot vocabulary **on demand**, only when a level you actually want needs a piece that
-  doesn't exist (PRD §7.10.1)
-- Each world introduces exactly one new idea (PRD §7.1); audit and cut any that introduce nothing
-- Coin budgets and both star thresholds authored and balanced per level
-- Cumulative star gate thresholds set now that real difficulty is known — **PRD open #18**
-- Diamond payout figures and achievement values set against real play — **PRD open #19, #20**
-- Reveal window size tuned — **PRD open #28**. Watch specifically for players stuck on three *consecutive*
-  levels, the one case the window doesn't cover (PRD §7.7, open #37).
-- Levels are **numbered, not named** (PRD §7.7) — no naming pass needed, and nothing to translate.
-- Every level passes automated fragility testing
-- Optional props placed to support discovery achievements (PRD §5.7)
+- **[ ] FO-090 — Distribute the four launch mechanics across the two worlds · S** — **needs PRD open #17**, and
+  decide where branching enters.
+- **[ ] FO-091 — Author 20 levels · XL** — each with a **recorded** reference solution (FO-032) passing at the
+  established tolerance. Reorder freely as the curve emerges: theme re-dresses automatically (PRD §7.10.5) and
+  FO-033 validates that no level lands in a world missing the blocks it needs. **Grow the kit and slot
+  vocabulary on demand only** — when a level you actually want needs a piece that doesn't exist.
+- **[ ] FO-092 — Balance coin budgets and star thresholds · M** — per level, derived by FO-034 then overridden
+  by hand where the automatic answer is wrong.
+- **[ ] FO-093 — Set cumulative star gate thresholds · S** — **PRD open #18**, now that real difficulty is known.
+- **[ ] FO-094 — Set diamond payouts and achievement values · S** — **PRD open #19, #20**, against real play.
+- **[ ] FO-095 — Tune the reveal window size · S** — **PRD open #28**. Watch specifically for players stuck on
+  three *consecutive* levels, the one case the window doesn't cover (PRD §7.7, open #37).
+- **[ ] FO-096 — Every level passes fragility testing · M** — FO-036 run across the full set; fix or cut any
+  level that ever fails.
+- **[ ] FO-097 — Place optional props for discovery achievements · S** — PRD §5.7.
+- **[ ] FO-098 — Audit each world's "one new idea" · S** — PRD §7.1. Cut or merge any world that introduces
+  nothing. Levels are **numbered, not named** (PRD §7.7), so there's no naming pass.
 
 ---
 
 ## Phase 7 — Release
 
-- Business model decided and implemented (PRD §13.5, open #24). **Read §13.5's closing note first:**
-  selling coins or capability is ruled out by the design and hints are rejected, so no rewarded-ad hook
-  exists. The realistic options are paid up front, a free world 1 with a paid unlock, or selling diamonds.
-- Release signing and Play Store listing
-- Store assets: icon, screenshots, trailer, description
-- **English only** at launch (PRD §2.1.1). If text was routed through a translation table as recommended,
-  adding a language later is filling in a spreadsheet rather than a refactor — confirm that was done.
-- Crash reporting
-- Performance pass on low-end devices
-- **Playtesting with people who are not Wouter.** This is **not optional** — PRD §12 means there is no
-  analytics, so manual playtesting is the *only* way to discover where players stall. Watch specifically
-  for anyone blocked by three consecutive levels, the gap the reveal window doesn't cover (PRD §7.7).
+- **[ ] FO-100 — Decide and implement the business model · M** — PRD §13.5, open #24. **Read §13.5's closing
+  note first:** selling coins or capability is ruled out by the design and hints are rejected, so **no
+  rewarded-ad hook exists**. The realistic options are paid up front, a free world 1 with a paid unlock, or
+  selling diamonds restricted to skins.
+- **[ ] FO-101 — Release signing and Play Store listing · M**
+- **[ ] FO-102 — Store assets · M** — icon, screenshots, trailer, description. Note PRD §8.1: plain blocks mean
+  a screenshot doesn't instantly say "dominoes", so the trailer carries more weight than usual.
+- **[ ] FO-103 — Confirm the localisation table · S** — **English only** at launch (PRD §2.1.1), but confirm text
+  was routed through a translation table so adding a language later is a spreadsheet, not a refactor.
+- **[ ] FO-104 — Crash reporting · S** — note this is *not* analytics (PRD §12); crash reports carry no
+  behavioural tracking. Confirm the chosen tool respects that before adding it.
+- **[ ] FO-105 — Performance pass on low-end devices · M** — including the slow-motion failure mode in
+  PRD §13.1 item 2.
+- **[ ] FO-106 — Playtesting with people who are not Wouter · L** — **not optional.** PRD §12 means there is no
+  analytics, so manual playtesting is the *only* way to discover where players stall. Watch specifically for
+  anyone blocked by three consecutive levels (PRD §7.7).
 
 ---
 
@@ -1278,11 +1416,11 @@ stuck players and would require adding hints or a skip in the same change.
 
 **Goal:** give diamonds something to buy (PRD §5.6).
 
-- Skin set data model — a set restyles all block types together
-- Skins shop screen, spending diamonds
-- Initial skin sets — **needs PRD open #25** for which and at what price
-- Collection achievements that reference skins become live (PRD §5.7)
-- Replaces the shop preview screen from Phase 4
+- **[ ] FO-110 — Skin set data model · S** — a set restyles all block types together.
+- **[ ] FO-111 — Skins shop screen · M** — spending diamonds. Replaces FO-057's roadmap screen.
+- **[ ] FO-112 — Initial skin sets · L** — **needs PRD open #25** for which sets and at what price.
+- **[ ] FO-113 — Activate collection achievements · S** — the skin-related ones from FO-056 become live
+  (PRD §5.7).
 
 ---
 
