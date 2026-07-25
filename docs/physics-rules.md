@@ -57,6 +57,26 @@ what else the phone is doing. Any gameplay decision made there is non-reproducib
 This applies to win detection, settle detection, no-progress detection, scoring, and the run camera's
 framing logic. Purely visual work (UI tweens, particle effects) may use `_process`.
 
+## ⚠️ `project.godot` cannot durably hold a value equal to Godot's own default
+
+Discovered after FO-002 shipped: opening the project in the editor and playing a scene caused Godot to
+silently rewrite `project.godot` and **drop `physics_ticks_per_second=60` and
+`max_physics_steps_per_frame=8`** — because both values exactly equal Godot's built-in defaults, its save
+logic treats them as nothing to persist. `physics_interpolation=true` survived the same resave because it
+*differs* from Godot's default (`false`).
+
+**Consequence:** the two settings that intentionally equal the default cannot be kept "explicit" in the
+`.godot` file itself — they will keep silently reappearing as absent every time the editor resaves the
+project, no matter how many times they're typed back in by hand. This is a stronger version of the
+"comments get stripped" problem FO-002 already flagged, and it means **this document, not
+`project.godot`, is the durable record** of the fact that 60 and 8 are deliberate rather than untouched
+defaults.
+
+**Functionally harmless** — Godot still runs at 60 ticks/sec with an 8-step ceiling either way, since
+those *are* its defaults. Nothing to fix in behaviour. If you ever open `project.godot` and don't see these
+two lines, that's expected editor behaviour, not data loss — re-adding them costs nothing and changes
+nothing at runtime, so don't chase it further.
+
 ## Related, deliberately not decided here
 
 - **Physics backend** (`physics/3d/physics_engine`, currently `DEFAULT` = GodotPhysics3D) — chosen by
