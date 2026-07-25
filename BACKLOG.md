@@ -1,7 +1,7 @@
 # Fall Over — Backlog
 
 **Companion to:** `PRD.md` — read that first; it holds the decisions this backlog implements.
-**Last updated:** 2026-07-25 · **Matches PRD:** v0.6
+**Last updated:** 2026-07-25 · **Matches PRD:** v0.9
 
 ---
 
@@ -112,11 +112,10 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [ ] **FO-030** · M · Modular kit piece system ⭐ *unblocks level design*
 - [ ] **FO-031** · M · Obstacle slots and theme kits
 
-### Phase 2 — A complete level (13)
+### Phase 2 — A complete level (12)
 
 - [ ] **FO-020** · M · Level and world definition resources
 - [ ] **FO-021** · M · Coins — the level constraint
-- [ ] **FO-022** · S · Inventory constraint model
 - [ ] **FO-023** · M · Finish, win detection and fail state
 - [ ] **FO-025** · M · Opening fly-through
 - [ ] **FO-027** · M · Save system
@@ -203,7 +202,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [ ] **FO-112** · L · Initial skin sets
 - [ ] **FO-113** · S · Activate collection achievements
 
-**Total: 91 stories.** Phases 0–2 are fully specified with acceptance criteria and file lists. Phases 3–8 are
+**Total: 90 stories.** FO-022 (inventory levels) was cut when coins became the only constraint model. Phases 0–2 are fully specified with acceptance criteria and file lists. Phases 3–8 are
 one-line placeholders — each gets detailed before it's worked, not now, because the game will have changed by
 then.
 
@@ -686,9 +685,13 @@ control scheme.
 
 **Out of scope:** prices and coin display (Phase 2), icons (text labels are fine in grey-box).
 
-**⚠️ Blocked on decision:** PRD open #8 — how deselection works. §6.1's recommendation is *both* a
-toggle-off on the active button *and* a separate visible cancel button, since toggle-off alone is
-undiscoverable on mobile. The criteria above only cover the toggle. **Do not choose — ask.**
+**Deselection is decided** (PRD §6.1, open #8 resolved). Two ways, deliberately redundant:
+
+- Tapping the active palette button again releases the block
+- **A small cancel button appears while a block is held** and also releases it
+
+Build both. The redundancy is the point — toggle-off alone is undiscoverable, and a player who can't work out how
+to back out quits rather than experiments.
 
 ---
 
@@ -729,12 +732,13 @@ undiscoverable on mobile. The criteria above only cover the toggle. **Do not cho
 
 **Blocked by:** FO-009, FO-010, FO-011, FO-012.
 
-**⚠️ Blocked on one decision:** PRD open #7 — panning while a block is selected. Unresolved, a player cannot
-place a block on off-screen ground. Recommendation is auto edge-pan.
+**Nothing blocks this story any more.** Both decisions are settled:
 
-**PRD open #6 is now mostly settled** — the gesture is place-then-swipe-sideways. What remains is sensitivity and
-how the player finishes, and both are tuning questions best answered by building it and trying it. Proceed with
-the recommendations above and confirm with Wouter on device.
+- **Off-screen targets: auto edge-pan** (PRD §6.1, open #7 resolved). Dragging a held block toward a screen edge
+  scrolls the view that way. Edge threshold and scroll speed exported and tunable. The single rule stays intact —
+  while a block is held, *all* input is placement.
+- **Rotation: place then swipe sideways** (PRD §4.7). Sensitivity and how the player finishes are tuning
+  questions — build with the recommended starting values and confirm with Wouter on device.
 
 **This is still the highest-risk story in the project.** Continuous rotation on a touchscreen is hard to make
 feel good, and no amount of correct code substitutes for iteration on a real phone. Budget several passes.
@@ -759,8 +763,9 @@ feel good, and no amount of correct code substitutes for iteration on a real pho
 
 **Blocked by:** FO-013.
 
-**⚠️ Blocked on decision:** PRD open #9 — the interaction pattern. Recommendation is a small radial menu
-(move / rotate / sell), but this is a design call.
+**Interaction pattern is decided** (PRD §6.1, open #9 resolved): **a radial ring of three icons around the
+block** — move, rotate, sell. Chosen over a bottom bar so the player's eyes stay on the block being edited, and
+over pure gestures because "drag it into the sea to sell" is not discoverable. Icons must be thumb-sized.
 
 ---
 
@@ -947,7 +952,9 @@ slots on it, and play it.
 no reason to wait. Build the six pieces from CSG primitives now; a purchased or modelled kit replaces them in
 Phase 5 (**PRD open #33**) without touching a single tuned level, because collision lives on the piece.
 
-**⚠️ Blocked on decision:** PRD open #34 — confirm the six-piece starting list before building it.
+**The six-piece list is confirmed** (PRD §7.10.1, open #34 resolved): flat plate · slope · cliff edge · water
+channel · raised platform · gap. Nothing speculative. **The kit grows on demand only** — when a level being
+designed needs a piece that doesn't exist.
 
 **This is the story that unblocks Wouter.** Once it lands he can design levels, which is the slowest work in the
 project and the only part nobody else can do. Prioritise getting it usable over getting it elegant.
@@ -976,8 +983,11 @@ project and the only part nobody else can do. Prioritise getting it usable over 
 
 **Blocked by:** FO-030.
 
-**⚠️ Blocked on decision:** PRD open #35 — the full slot vocabulary. Start with the six above and grow on
-demand; confirm before adding more.
+**The six slot types are confirmed** (PRD §7.11, open #35 resolved): tall obstacle · low obstacle · wide barrier ·
+bridge · hazard surface · prop/decoration. Between them they cover blocking the route, forcing a detour, crossing
+a gap, and danger — every puzzle idea planned for worlds 1 and 2. Grow on demand only.
+
+The *models* each theme maps them to are Phase 5 work (FO-073); this story only needs grey-box primitives.
 
 ---
 
@@ -992,8 +1002,8 @@ reference solution is recorded and its thresholds derived.
 
 **⚠️ Execution order is not document order** (as in Phase 0). Work them in this order:
 
-> **FO-020 → FO-021 → FO-022 → FO-023 → FO-025 → FO-027 → FO-024 → FO-026 → FO-029 → FO-032 → FO-033 →
-> FO-034 → FO-028**
+> **FO-020 → FO-021 → FO-023 → FO-025 → FO-027 → FO-024 → FO-026 → FO-029 → FO-032 → FO-033 → FO-034 →
+> FO-028**
 
 The save system (FO-027) deliberately precedes scoring (FO-024), because star persistence has to have somewhere
 to persist to. The three authoring stories (FO-032/033/034) come before FO-028, because authoring level 1-1 is
@@ -1012,7 +1022,7 @@ A `LevelDefinition` resource storing everything in PRD §13.3:
 - **Island layout** — which kit pieces (FO-030) and where
 - **Obstacle slots** — which slots (FO-031) and where. **Never specific models.**
 - Starter placement and impulse direction; finish placement
-- Constraint model — coin amount *or* inventory counts
+- Coin amount for the level
 - Available block types
 - **Second and third star coin thresholds**
 - Fly-through camera positions, **orthographic sizes** and duration
@@ -1064,35 +1074,23 @@ Plus:
 
 ---
 
-### [ ] FO-022 — Inventory constraint model · S
-
-**Goal:** the alternative to coins (PRD §4.6) — fixed per-type counts, no coins.
-
-**Acceptance criteria:**
-
-- A level using the inventory model shows per-type remaining counts instead of a coin total
-- Placing decrements; removing or undoing restores
-- Types at zero are visibly unavailable in the palette
-- A level uses one model or the other, never both
-
-**Files:** `scripts/economy/inventory_budget.gd`, `scripts/ui/block_palette.gd`
-
-**Blocked by:** FO-021.
-
-**⚠️ Blocked on decision:** PRD open #11 — do inventory levels award stars 2 and 3? Recommendation is the
-completion star only.
-
----
-
 ### [ ] FO-023 — Finish, win detection and fail state · M
 
 **Goal:** make the level winnable and losable.
 
 **Acceptance criteria:**
 
-- Finish object placed from the level definition, tagged `Victory`, Dark Red in grey-box
-- Win fires the moment the finish is triggered
-- Fail fires when the run settles without triggering the finish
+- **A chest** placed from the level definition, tagged `Victory`, Dark Red in grey-box. A **static body with a
+  hit detector**, not a rigid body — it doesn't need to topple (PRD §4.2). Grey-box shape should already read as
+  chest-like rather than domino-like, since the silhouette difference is doing accessibility work (PRD §8.7).
+- **Propagate a *live* flag** (PRD §4.2.1): the starter becomes live when it receives its impulse; any live body
+  striking another body above a force threshold makes that body live too. Threshold exported and tunable
+  (**PRD open #38**).
+- **Win fires when the chest is hit by a live body.** Any hit counts — no tilt threshold, no "did it fall".
+- **A hit from a non-live body does nothing.** Verify both exploits are closed: (a) a block placed already
+  resting against the chest does not win, (b) a block that topples on its own while the layout settles does not
+  win.
+- Fail fires when the run settles without a live body hitting the chest
 - On fail, the break point is made obvious — highlight the last block that fell, rest the camera there
   (PRD §4.10)
 - Win and fail evaluated in `_physics_process`
@@ -1101,8 +1099,13 @@ completion star only.
 
 **Blocked by:** FO-020, FO-015, FO-014 (reuses the highlight material for the break-point indicator).
 
-**⚠️ Blocked on decision:** PRD open #10 — what counts as triggering the finish. Recommendation is tipping
-past a tilt threshold.
+**Win condition is decided** (PRD §4.2, open #10 resolved): a chest, any hit counts, but it must trace back to the
+starter.
+
+**Bonus the *live* flag gives you for free:** the set of live bodies at the end of a run *is* the chain that
+actually happened. So the last live body is the break point for failure feedback (PRD §4.10) — no separate
+tracking needed — and in Phase 3 it identifies which branch stalled (FO-044). Build the flag cleanly; three
+stories depend on it.
 
 ---
 
@@ -1144,7 +1147,9 @@ without the save system, so the save schema comes first.
 
 **Blocked by:** FO-020, FO-011.
 
-**⚠️ Blocked on decision:** PRD open #12 — auto-skip on any level already completed?
+**Decided** (PRD §6.4, open #12 resolved): the sweep **plays every time**, including on levels already completed,
+and is **always skippable with one tap**. Consistent behaviour, one less rule. Only exception is resuming a level
+mid-build (FO-029), where it is suppressed.
 
 ---
 

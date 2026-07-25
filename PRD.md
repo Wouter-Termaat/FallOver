@@ -1,6 +1,6 @@
 # Fall Over — Product Requirements Document
 
-**Version:** 0.6
+**Version:** 0.9
 **Last updated:** 2026-07-24
 **Owner:** Wouter Termaat
 **Status:** Pre-production. Items marked 🔓 are unresolved and are Wouter's call — see §16.
@@ -12,6 +12,18 @@ categories. Added undo/redo, mid-level resume, and haptics. Blocks cannot be sta
 past launch**, which changes the launch meta-screen set. **Level select now uses a rolling reveal
 window** (§7.7) — this replaced one-at-a-time reveal after §5.3.1 showed the main route was otherwise a
 hard wall for stuck players.
+
+**Changes since v0.8:** **Fixed-inventory levels cut** (§4.6) — coins are the only constraint model. The same
+puzzles are reachable by pricing blocks high or limiting which types a level offers.
+
+**Changes since v0.7:** The finish is now **a chest**, won by any hit — but the hit must **trace back to the
+starter** via a propagating *live* flag (§4.2, §4.2.1), which also gives break-point and failed-branch detection
+for free. Fly-through always plays and is always skippable. Six obstacle slot types fixed (§7.11). The chest
+partly resolves the colour-accessibility problem (§8.7).
+
+**Changes since v0.6:** Four blocking interaction decisions resolved (§6.1): **auto edge-pan** while holding a
+block, **deselect via palette toggle plus a cancel button**, and a **radial ring** for editing a placed block.
+Kit piece list fixed at **six basics** (§7.10.1). Unblocks FO-012, FO-013, FO-014 and FO-030.
 
 **Changes since v0.5:** **Rotation gesture decided** — place the block, then swipe sideways to spin it (§4.7).
 The original Unity project is gone, so art starts from scratch: CSG placeholders now, purchased or modelled kit
@@ -132,14 +144,33 @@ Level loads  →  Opening fly-through shows the island (skippable)
 - On **Start** it receives a fixed impulse in a level-authored direction, and falls.
 - The impulse is identical on every run and is never randomised.
 
-### 4.2 The finish
+### 4.2 The finish — a chest
 
-- Exactly one per level — a block or a chest. Tagged `Victory`.
-- Visually distinct (prototype used red — see §8.7).
-- The level is won the moment the finish is *triggered*.
-- 🔓 **What counts as triggering it?** Options: (a) any collision above a force threshold, (b) tipping
-  past a tilt angle, (c) fully knocked flat. Recommendation: **(b) tilt past a threshold** — a light
-  graze shouldn't count, but a finish that wobbles upright shouldn't rob the player either.
+- Exactly one per level. Tagged `Victory`.
+- **It is a chest, not a domino.** Visually distinct in *shape* as well as colour, which matters — see §8.7.
+- **The level is won the moment the chest is hit by anything that is part of the chain.** No tilt threshold, no
+  "did it fall over" question. A hit is a hit. Simpler to build, and simpler for the player to read.
+- Because it doesn't need to topple, the chest can be a **static body with a hit detector** rather than a rigid
+  body — fewer moving parts and one less thing that can behave unpredictably.
+
+#### 4.2.1 ⚠️ The hit must trace back to the starter
+
+A hit only counts if it came from a chain that began with the starter. Without this rule, two things would win
+the level by accident:
+
+- a block placed so it already rests against the chest
+- a block that topples on its own while the layout settles, before anything is pushed
+
+**Implementation:** propagate a *live* flag. The starter becomes live when it receives its impulse (§4.1). Any
+live body that strikes another body above a force threshold makes that body live too. The chest only accepts a
+hit from a live body.
+
+This is cheap to build and it is what makes the puzzle honest. It also gives failure feedback a useful signal for
+free: the set of live bodies at the end of a run *is* the chain that actually happened, so the last live block is
+the break point (§4.10), and with branching (§4.3) it identifies which branch stalled.
+
+🔓 The force threshold for propagating *live*. Too low and a settling wobble spreads it; too high and a gentle but
+genuine link in the chain is ignored. Tune on device (§16 #38).
 
 ### 4.3 Chains and branching
 
@@ -215,13 +246,18 @@ be bought, no level can rely on its own constraint, and the puzzle is dead.
 - Placing a block spends its price; removing or undoing it refunds in full.
 - There is **no penalty for changing your mind** during the build phase — Pillar 2.
 
-**Inventory levels** are the alternative constraint model: the level hands over exact counts (e.g. 8
-standard, 2 long, 1 ball) and no coins. Rewards using an awkward toolset well. A level uses one model
-or the other.
+**Coins are the only constraint model.** The "fixed inventory" idea — handing the player exact counts instead of
+coins — is **cut**. Every level gives coins, and stars always work the same way: one for finishing, two from
+coins left over (§5.2).
 
-🔓 Do inventory levels get stars 2 and 3? Leftover *pieces* is the obvious analogue, but "use as few
-as possible" and "here are your exact pieces" pull against each other. Recommendation: inventory
-levels award only the completion star.
+This loses nothing, because the same puzzles are reachable through the coin system:
+
+- **Want a tight toolbox?** Offer only certain block types in that level (§4.5).
+- **Want a specific piece to feel precious?** Price it high.
+- **Want to force efficiency?** Set a tight coin budget.
+
+One system to build, one to balance, one to explain. Two scoring models would have been the alternative, and the
+second one never scored cleanly anyway.
 
 ### 4.7 Placement
 
@@ -557,12 +593,18 @@ control.
 
 **Edge cases to resolve before placement is built:**
 
-- 🔓 **Panning while a block is selected.** If the target is off-screen the player is stuck.
-  Recommendation: auto edge-pan when dragging a block toward a screen edge, preserving the single clean
-  rule above.
-- 🔓 **Deselecting.** Tap the active palette button again, a visible cancel button, or both?
-  Recommendation: both — toggle-off alone is undiscoverable on mobile.
-- 🔓 **Editing a placed block.** Recommendation: a small radial menu (move / rotate / sell).
+**Panning while a block is selected: auto edge-pan.** Dragging a held block toward a screen edge scrolls the
+view in that direction, the way dragging a file to the edge of a window does. This preserves the single clean
+rule above — while a block is held, *all* input is placement — and adds no gesture to learn. Edge threshold and
+scroll speed exported and tunable.
+
+**Deselecting: two ways, deliberately.** Tapping the active palette button again releases the block, *and* a
+small cancel button appears while a block is held. The redundancy is the point: toggle-off alone is
+undiscoverable, and a mobile player who can't work out how to back out doesn't experiment, they quit.
+
+**Editing a placed block: a radial ring.** Tapping a placed block shows three icons around it — move, rotate,
+sell. Chosen over a bottom bar so the player's eyes stay on the block being edited, and over pure gestures
+because "drag it into the sea to sell" is not discoverable.
 
 #### 6.1.1 The ghost block
 
@@ -629,7 +671,8 @@ not decorative: it shows the player the starter, the finish and the obstacles be
   out, only slide.
 - **Must be skippable with one tap** — by the fifth retry it becomes an irritation.
 - **Skipped automatically when resuming a level in progress** (§4.11).
-- 🔓 Auto-skip on any level already completed?
+- **Not auto-skipped on completed levels** — it plays every time and is always one tap away from being skipped.
+  Consistent behaviour, one less rule. If the tap becomes annoying over twenty levels, revisit.
 
 ### 6.5 Haptics
 
@@ -793,8 +836,9 @@ level you want to build needs a piece that doesn't exist, that's the trigger to 
 costs nothing extra, *because pieces carry their own fixed collision* — swapping the art doesn't disturb a
 single tuned level. Recommendation: **option 1 now, shop for option 2 in parallel.**
 
-🔓 **Initial piece list is open (§16 #34).** Recommendation: start minimal — five or six pieces, enough to
-build every world 1–2 mechanic in §7.3 — and let the first few levels reveal what's actually missing.
+**Initial piece list: six basics.** Flat plate · slope · cliff edge · water channel · raised platform · gap.
+Enough to build every world 1–2 mechanic in §7.3, and nothing speculative. **The kit grows on demand only** —
+when a level being designed needs a piece that doesn't exist, that's the trigger to add one.
 
 #### 7.10.2 Where levels are built
 
@@ -864,7 +908,11 @@ rather than let it through.
 | Hazard surface | Water | Quicksand | Thin ice | Lava |
 | Prop / dressing | Cabin, stump | Skull, dead tree | Igloo, icicles | Vent, ash pile |
 
-*Illustrative, not final — 🔓 the full vocabulary and mapping is §16 #35.*
+**The six starting slot types are fixed:** tall obstacle · low obstacle · wide barrier · bridge · hazard surface
+· prop/decoration. Between them they cover blocking the route, forcing a detour, crossing a gap, and danger —
+every puzzle idea planned for worlds 1 and 2. Grow the list on demand only.
+
+The *models* each theme maps them to are Phase 5 art work; the table above is illustrative.
 
 **⚠️ The one absolute rule: collision belongs to the slot, never to the art.**
 
@@ -1007,11 +1055,13 @@ job.
 The prototype's green starter and red finish are the **worst possible colour pair** for the most common
 form of colour blindness, affecting roughly 8% of men. Decision: **not a priority now.**
 
-Recorded because the cost of addressing it rises steeply with time, and because one solution is
-effectively free if chosen before the art is made: **make the starter and finish differ in silhouette,
-not only in colour.** The finish is already likely to become a chest, and the starter could carry a
-marker or arrow. If those choices are made anyway, the problem solves itself with no settings menu and
-no second palette to maintain. Worth keeping in mind at Phase 5 rather than treating as a later bolt-on.
+**Half of this is already solved.** §4.2 makes the finish a **chest**, which is a completely different silhouette
+from a domino — so the green/red pair is no longer carrying the meaning by itself. Shape does the work; colour
+reinforces it.
+
+What's left is the starter, which is still a domino distinguished only by colour. The cheap fix is to give it a
+marker, arrow or base plate so it reads differently in shape too. Free if decided while the art is being made,
+expensive as a later bolt-on. Worth settling at Phase 5 rather than treating as an afterthought.
 
 ---
 
@@ -1201,7 +1251,7 @@ A level stores:
 - **Island layout** — which modular kit pieces (§7.10.1) and where
 - **Obstacle slots** — which semantic slots (§7.11) and where. **Never specific models.**
 - Starter placement and impulse direction; finish placement
-- Constraint model — coin amount, *or* inventory counts
+- Coin amount for the level
 - Available block types — must be a subset of what the assigned world has unlocked (§7.10.5)
 - **Second and third star coin thresholds**
 - Fly-through camera positions, **orthographic sizes** and duration (§6.4)
@@ -1302,6 +1352,7 @@ Recorded so they aren't accidentally reintroduced, and so the reasoning survives
 | Daily rewards (§5.10) | Rewards opening the app rather than playing | Easily |
 | "Indian" skin (§5.6) | Risks caricature; store review sensitivity | Not recommended |
 | Analytics (§12) | Zero privacy burden | Needs a privacy policy |
+| Fixed-inventory levels (§4.6) | Coins already reach the same puzzles via price and availability | Easily, but would need a second scoring model |
 | Domino pips on blocks (§8.1) | Plain blocks read cleanly at any zoom and skin freely | Easily, if screenshots test badly |
 | Level names (§7.7) | Numbers cost nothing to author or translate | Easily |
 | Placement reach indicator (§4.7) | Spacing by eye is the skill being tested | Cheap — watch playtests |
@@ -1328,12 +1379,12 @@ one of these independently — they are all Wouter's call.**
 | 4 | Active rigid body ceiling | Phase 0 |
 | 5 | **Unit scale** — is 1 unit ≈ 10 cm? Everything geometric depends on it | Phase 0 |
 | 6 | Rotation swipe **sensitivity**, and **how the player finishes** rotating (§4.7) — the gesture itself is now decided | Phase 1 |
-| 7 | Panning while a block is selected | Phase 1 |
-| 8 | How deselection works | Phase 1 |
-| 9 | Editing/selling an already-placed block | Phase 1 |
-| 10 | What counts as triggering the finish | Phase 2 |
-| 11 | Stars 2 and 3 on inventory levels | Phase 2 |
-| 12 | Auto-skip the fly-through on completed levels | Phase 2 |
+| 7 | ~~Panning while a block is selected~~ — **RESOLVED:** auto edge-pan (§6.1) | Resolved |
+| 8 | ~~How deselection works~~ — **RESOLVED:** palette toggle *and* a cancel button (§6.1) | Resolved |
+| 9 | ~~Editing a placed block~~ — **RESOLVED:** radial ring of move/rotate/sell (§6.1) | Resolved |
+| 10 | ~~What counts as triggering the finish~~ — **RESOLVED:** a chest, any hit counts, but it must trace back to the starter (§4.2) | Resolved |
+| 11 | ~~Stars on inventory levels~~ — **RESOLVED:** inventory levels cut entirely; coins only (§4.6) | Resolved |
+| 12 | ~~Auto-skip the fly-through on completed levels~~ — **RESOLVED:** no, always play it, always skippable (§6.4) | Resolved |
 | 13 | Full block catalogue: confirm costs, and Bridge/Rope/Fragile specs | Phase 3 |
 | 14 | What "Standard Block 1" was in the prototype | Phase 3 |
 | 15 | Skateboard / coin / bottle — blocks, obstacles or props? | Phase 3 |
@@ -1350,13 +1401,14 @@ one of these independently — they are all Wouter's call.**
 | 26 | Is time attack permitted in bonus levels, given the flat cut in §5.9 | Post-launch |
 | 27 | ~~Help for stuck players~~ — **RESOLVED:** rolling reveal window (§7.7). No hints, no skip | Resolved |
 | 28 | **Reveal window size** — 3 is a starting guess; tune on real levels | Phase 6 |
+| 38 | **Force threshold for propagating the *live* flag** (§4.2.1) | Phase 2 |
 | 29 | What "checkpoints" means when a chain runs in one continuous push (§14) | If used |
 | 30 | What currency "pay for a shortcut" would use, given coins are pre-spent (§14) | If used |
 | 31 | **Drag/damping values** per block type — governs how runs end and how they feel (§4.9.2) | Phase 0 |
 | 32 | Logo and wordmark design (§8.2) | Phase 5 |
 | 33 | Which kit to buy or model, once CSG placeholders are in place (§7.10.1) | Phase 5 |
-| 34 | **Initial kit piece list** — which terrain pieces and obstacle slots ship first (§7.10) | Phase 1 |
-| 35 | **Full slot vocabulary** and the theme-kit mapping table (§7.11) | Phase 4 |
+| 34 | ~~Initial kit piece list~~ — **RESOLVED:** six basics (§7.10.1) | Resolved |
+| 35 | ~~Full slot vocabulary~~ — **RESOLVED:** six types to start (§7.11). The theme-kit *mapping table* per world is still Phase 5 work | Resolved |
 | 36 | When to build the in-game authoring mode (§7.10) | After 5 levels exist |
 | 37 | Handling a player stuck on three *consecutive* levels — widen the window, or count completed levels rather than highest completed (§7.7) | On evidence |
 
