@@ -119,7 +119,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-021** · M · Coins — the level constraint
 - [x] **FO-023** · M · Finish, win detection and fail state
 - [x] **FO-025** · M · Opening fly-through
-- [ ] **FO-027** · M · Save system
+- [x] **FO-027** · M · Save system
 - [ ] **FO-024** · S · Stars
 - [ ] **FO-026** · M · Win and fail screens
 - [ ] **FO-029** · M · Mid-build save and resume
@@ -1521,7 +1521,7 @@ insertion point rather than a stub that pays nothing.
 
 ---
 
-### [ ] FO-027 — Save system · M
+### [x] FO-027 — Save system · M
 
 **Goal:** PRD §11. Get the schema right now; migrations later are painful.
 
@@ -1544,6 +1544,17 @@ insertion point rather than a stub that pays nothing.
 **Note on ordering:** this comes *before* FO-024 (stars), not after. The schema can be defined from the
 PRD without stars existing, and FO-024's "never decreases on replay" criterion needs somewhere to persist
 to. Getting this backwards means writing scoring twice.
+
+**Findings:** `in_progress_layout` is a plain `Array[Dictionary]` (block resource path + transform), not
+nested custom Resources — keeps round-tripping through `ResourceSaver`/`ResourceLoader` reliable rather
+than fighting Godot's resource serialization for deeply nested custom types. Verified headless: a full
+save/reload round trip (diamonds, level completion, best stars, an in-progress layout entry) comes back
+exact into a fresh in-memory `SaveData`. Deliberately corrupted the save file on disk and confirmed
+`load_game()` catches the failure and falls back to defaults cleanly — no crash, just a clear warning.
+Version mismatch handling exists but has no actual migration path yet (this is version 1, the first ever
+shipped) — falls back to defaults the same as corruption, flagged in the code for whenever version 2 is
+needed. Not tested with the real OS-level `user://` restart cycle — only within one process — but the
+underlying file I/O is identical either way.
 
 ---
 
