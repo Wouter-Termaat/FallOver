@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/domino_chain_test.gd" id="1_script"]
+
+[node name="DominoChainTest" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8137977, -0.3303661, 0.4772036, 0, 0.8213938, 0.5703407, -0.5811571, -0.4640257, 0.6683476, 10, 20, 15)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+current = true
+fov = 60.0

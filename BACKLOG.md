@@ -87,7 +87,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-000** · S · Move the repo out of OneDrive and add a remote
 - [x] **FO-001** · S · Create the Godot project skeleton
 - [x] **FO-002** · S · Configure physics for reliability
-- [ ] **FO-003** · M · Grey-box test scene with a falling domino chain
+- [x] **FO-003** · M · Grey-box test scene with a falling domino chain
 - [ ] **FO-008** · M · Determine the unit scale
 - [ ] **FO-006** · M · Android export pipeline
 - [ ] **FO-007** · S · Renderer and min-API decisions
@@ -322,7 +322,7 @@ between 4.x releases; the values above were checked but should be re-verified.
 
 ---
 
-### [ ] FO-003 — Grey-box test scene with a falling domino chain · M
+### [x] FO-003 — Grey-box test scene with a falling domino chain · M
 
 **Goal:** the simplest thing that proves the core physics works — a flat plane, a line of boxes, one push.
 
@@ -349,6 +349,34 @@ interpolation settings FO-002 writes, so measuring before those are set measures
 
 **Why this matters:** this becomes the permanent tuning bench for block feel. Every "does a domino feel
 right" question gets answered here for the rest of the project.
+
+**Findings (FO-003):**
+
+- **Orientation:** a domino's thin face (`depth`, 0.5) points along the direction of travel, and its wide
+  face (`length`, 2) is perpendicular to it — so a toppling domino's wide face is what catches the next
+  one, same as a real chain. Box shape maps PRD's H×L×D to Godot's (X=depth, Y=height, Z=length).
+- **Starting physics values chosen** (all exported, all provisional — this is a starting point, not a
+  final feel call):
+
+  | Value | Chosen | Why |
+  |---|---|---|
+  | `spacing` | 2.4 (≈0.6 × height) | Close enough that a falling domino's top edge reaches the next before passing it; loose enough not to look like overlap. |
+  | `block_mass` | 1.0 | Matches Standard Block's relative weight in PRD §4.4. |
+  | `friction` | 1.0 | Godot default; keeps dominoes from sliding instead of toppling and helps them stop cleanly once down. |
+  | `restitution` | 0.0 | No bounce — bounce adds chaos (§13.1) and works against drag as the primary way runs end (§4.9.2). |
+  | `linear_damp` / `angular_damp` | 0.1 / 0.3 | Low enough that toppling motion still builds up, high enough that things decay and sleep. |
+  | `impulse_strength` | 5.0 | Enough to reliably tip the first domino at this mass/height. |
+
+- **Mechanical verification (headless, not a feel judgement):** instanced the scene, triggered the impulse
+  programmatically, and stepped physics ticks directly, reading each body's tilt from vertical. Result:
+  **15/15 blocks topple**, all settle to sleep, full run takes ~600 physics ticks (~10s at 60 ticks/sec).
+  Repeated 3× — **tilt values were bit-identical across all runs**, consistent with PRD §13.1's no-randomness
+  expectation.
+- **~10s to fully settle is on the slow side** and is a candidate for tightening once tuned by feel — higher
+  damping would shorten it but risks weakening the topple. Left as-is pending on-device judgement.
+- **This mechanical pass only proves the chain doesn't die out or behave chaotically — it does not answer
+  whether it *feels* right.** That call needs a real phone (per CLAUDE.md) and is still open. All the values
+  above are `@export`, so they can be retuned without touching code.
 
 ---
 
