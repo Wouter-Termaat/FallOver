@@ -97,7 +97,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 
 ### Phase 1 — Core interaction (10)
 
-- [ ] **FO-009** · M · Grey-box island scene
+- [x] **FO-009** · M · Grey-box island scene
 - [ ] **FO-010** · S · Block definition resource
 - [ ] **FO-011** · M · Camera rig — orbit, pan, zoom, 45° snap
 - [ ] **FO-012** · S · Block palette UI
@@ -715,7 +715,7 @@ requirement is baked into FO-013 and FO-014, so read FO-017 before building thos
 
 ---
 
-### [ ] FO-009 — Grey-box island scene · M
+### [x] FO-009 — Grey-box island scene · M
 
 **Goal:** the terrain everything else in Phase 1 sits on. FO-011 needs bounds and ground; FO-013 needs a
 surface to raycast against plus water and edges to reject placements on.
@@ -752,6 +752,10 @@ convention
 
 **Out of scope:** data-driven starter/finish placement (FO-020), the modular kit (FO-030), real art, multiple
 islands.
+
+**Findings:** Two platforms split by a 3-unit water gap, connected further along by a ramp up to a raised
+platform. Layer convention (ground/water/start-finish) and groups documented in `docs/greybox-island.md`.
+Verified on-device via screenshot — colours, shadows, and gap/ramp geometry all read correctly.
 
 ---
 
