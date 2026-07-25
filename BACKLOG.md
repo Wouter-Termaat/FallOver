@@ -921,6 +921,11 @@ rejection all confirmed working on first pass. Camera orbit still feels a bit se
 deferred, revisit in a later feel pass. Ghost built in code, not a separate `block_ghost.tscn` (simpler,
 consistent with how FO-003's test scene builds things).
 
+**⚠️ Open note from Wouter, not yet investigated:** orthographic projection "isn't locked yet" — reported
+after further playtesting past the initial fix. Look into whether something (rotation, zoom, or an edge
+case) is letting it slip back toward perspective-looking behaviour, or whether this is a framing/FOV
+perception issue rather than the projection mode itself.
+
 ---
 
 ### [x] FO-014 — Edit and remove placed blocks · M
@@ -1012,6 +1017,10 @@ undoing thirty placements one at a time.
 
 ### [ ] FO-015 — Run the simulation with a zoom-to-fit camera · L
 
+**Note from Wouter (session end):** wants a Start button soon specifically to trigger the starter block
+falling on the grey-box island, for easy manual testing — flagged as wanted "next time," ahead of the full
+zoom-to-fit camera work if that's faster to get to first.
+
 **Goal:** press Start, watch it fall, and make the watching *good*. PRD §6.3.
 
 **Acceptance criteria:**
@@ -1071,6 +1080,9 @@ right matters more than almost anything else in this phase.
 ---
 
 ### [ ] FO-016 — Reset to the standing layout · M
+
+**Note from Wouter (session end):** wants a simple reset button soon so the grey-box island can be reset
+easily during manual testing, without waiting for the full Phase 1 ordering if a quick version is faster.
 
 **Goal:** implement PRD §4.10 — retry must be free, instant, and never destroy the player's work.
 
