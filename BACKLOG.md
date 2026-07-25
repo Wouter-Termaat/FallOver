@@ -120,7 +120,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [x] **FO-023** · M · Finish, win detection and fail state
 - [x] **FO-025** · M · Opening fly-through
 - [x] **FO-027** · M · Save system
-- [ ] **FO-024** · S · Stars
+- [x] **FO-024** · S · Stars
 - [ ] **FO-026** · M · Win and fail screens
 - [ ] **FO-029** · M · Mid-build save and resume
 - [ ] **FO-032** · M · Record a reference solution by playing
@@ -1443,7 +1443,7 @@ on-device; the win sequencing hold and fail-highlight visuals need your eyes.
 
 ---
 
-### [ ] FO-024 — Stars · S
+### [x] FO-024 — Stars · S
 
 **Goal:** PRD §5.2. Maximum 3 per level.
 
@@ -1460,6 +1460,12 @@ on-device; the win sequencing hold and fail-highlight visuals need your eyes.
 
 **Blocked by:** FO-021, FO-023, **FO-027** — "persists and never decreases" can't be built or tested
 without the save system, so the save schema comes first.
+
+**Findings:** `Scoring.calculate_stars()` is a pure function (level + coins left + won → star count), no
+formula guessing — thresholds come straight from the level's authored fields. `record_result()` uses
+`max()` against the stored best, so a worse replay literally cannot lower it. Verified headless: all four
+threshold combinations return the right star count, and a worse replay after a 3-star result leaves the
+saved best untouched.
 
 ---
 
