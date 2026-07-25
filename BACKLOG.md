@@ -378,6 +378,13 @@ right" question gets answered here for the rest of the project.
   whether it *feels* right.** That call needs a real phone (per CLAUDE.md) and is still open. All the values
   above are `@export`, so they can be retuned without touching code.
 
+**Wouter's first playtest (in-editor, Play Scene):** all 15 topple, clean (nothing flew off oddly), comes
+to rest. Feel verdict: **a bit slow**, otherwise fine. Not treated as a damping problem — these blocks are
+4 *Godot units* tall under Godot's real-gravity assumption (1 unit = 1 metre), and toppling time scales
+with the square root of height, so a 4-metre domino is expected to look ponderous. Likely resolved for
+free once FO-008 picks a realistic unit scale, rather than by retuning damping now. Revisit damping feel
+after FO-008, not before.
+
 ---
 
 ### [ ] FO-008 — Determine the unit scale · M
