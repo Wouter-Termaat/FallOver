@@ -102,7 +102,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 - [ ] **FO-011** · M · Camera rig — orbit, pan, zoom, 45° snap
 - [x] **FO-012** · S · Block palette UI
 - [x] **FO-013** · L · Selection-driven placement input ⚠️ *highest risk in the project*
-- [ ] **FO-014** · M · Edit and remove placed blocks
+- [x] **FO-014** · M · Edit and remove placed blocks
 - [ ] **FO-015** · L · Run the simulation with a zoom-to-fit camera ⚠️ *biggest "feels cheap" risk*
 - [ ] **FO-017** · M · Undo and redo history
 - [ ] **FO-018** · S · Clear all
@@ -923,7 +923,7 @@ consistent with how FO-003's test scene builds things).
 
 ---
 
-### [ ] FO-014 — Edit and remove placed blocks · M
+### [x] FO-014 — Edit and remove placed blocks · M
 
 **Goal:** let the player fix mistakes — Pillar 2 in practice.
 
@@ -944,6 +944,12 @@ consistent with how FO-003's test scene builds things).
 **Interaction pattern is decided** (PRD §6.1, open #9 resolved): **a radial ring of three icons around the
 block** — move, rotate, sell. Chosen over a bottom bar so the player's eyes stay on the block being edited, and
 over pure gestures because "drag it into the sea to sell" is not discoverable. Icons must be thumb-sized.
+
+**Findings:** Radial menu (Move/Rotate/Sell) built as plain text buttons for now (icons are Phase 5 art).
+Reuses FO-013's ghost/rotate machinery for move and rotate rather than new code paths. Verified on-device.
+Added a finger-offset for ghost dragging (raycasts from a point above the actual touch, not under it) per
+Wouter's feedback — the finger was blocking the view of where the block was landing. Applies to both
+FO-013 and FO-014's drag flows.
 
 ---
 

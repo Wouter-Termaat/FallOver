@@ -8,7 +8,7 @@ extends Node3D
 ## Collision layer convention (docs/greybox-island.md), extended here:
 ## 1=ground 2=water 4=start/finish 8=player-placed blocks.
 
-enum State { IDLE, POSITIONING, ROTATING }
+enum State { IDLE, POSITIONING, ROTATING, EDIT_MENU }
 
 const GROUND_LAYER: int = 1
 const WATER_LAYER: int = 2
@@ -24,10 +24,16 @@ const OVERLAP_MASK: int = START_FINISH_LAYER | PLACED_BLOCK_LAYER
 @export var grid_size: float = 0.5
 @export var edge_pan_margin_px: float = 80.0
 @export var edge_pan_speed: float = 12.0
+## Raycast this far above the actual finger position, so the finger/thumb
+## doesn't sit on top of the exact spot it's placing — Wouter's call.
+@export var finger_offset_px: Vector2 = Vector2(0.0, -140.0)
 
 @export_group("Rotation — tune on device, this is the feel of the game")
 @export var rotation_degrees_per_screen_width: float = 180.0
 @export var tap_max_movement_px: float = 12.0
+
+@export_group("Edit — FO-014")
+@export var radial_menu_radius_px: float = 90.0
 
 var _state: State = State.IDLE
 var _definition: BlockDefinition = null
@@ -37,6 +43,11 @@ var _current_command: PlacementCommand = null
 var _touch_index: int = -1
 var _touch_start_pos: Vector2 = Vector2.ZERO
 var _touch_moved: bool = false
+
+var _edit_command: PlacementCommand = null
+var _editing_existing: bool = false
+var _radial_menu: Control = null
+var _suppress_next_edit_menu_release: bool = false
 
 
 func _ready() -> void:
@@ -68,11 +79,22 @@ func _finish_rotation() -> void:
 	if _state == State.ROTATING:
 		_state = State.IDLE
 		_current_command = null
+		_editing_existing = false
+		if _edit_command != null:
+			_deselect_edit() # finishing an edit-rotate fully deselects too
+		_editing_existing = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _definition == null:
-		return # nothing selected: camera owns input (FO-011), unchanged
+	if _definition == null and _state == State.IDLE:
+		# Third input state (PRD §6.1): nothing selected, nothing mid-edit.
+		# Still watch for a tap on a placed block; anything else is left
+		# alone for the camera (input_enabled stays true in that case).
+		if event is InputEventScreenTouch:
+			_on_touch(event.pressed, event.index, event.position)
+		elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			_on_touch(event.pressed, 0, event.position)
+		return
 
 	if event is InputEventScreenTouch:
 		_on_touch(event.pressed, event.index, event.position)
@@ -93,7 +115,10 @@ func _on_touch(pressed: bool, index: int, position: Vector2) -> void:
 		_touch_start_pos = position
 		_touch_moved = false
 		if _state == State.IDLE:
-			_begin_positioning(position)
+			if _definition != null:
+				_begin_positioning(position)
+			else:
+				_try_select_placed_block(position)
 	else:
 		if index != _touch_index:
 			return
@@ -120,6 +145,11 @@ func _on_release(position: Vector2) -> void:
 			if not _touch_moved:
 				_finish_rotation() # tap on empty ground finishes it
 			# else: the drag just performed was the rotation swipe itself
+		State.EDIT_MENU:
+			if _suppress_next_edit_menu_release:
+				_suppress_next_edit_menu_release = false
+			elif not _touch_moved:
+				_deselect_edit() # tap on empty ground deselects (PRD §6.1)
 
 
 func _begin_positioning(position: Vector2) -> void:
@@ -142,7 +172,7 @@ func _build_ghost() -> MeshInstance3D:
 
 
 func _update_ghost(screen_pos: Vector2) -> void:
-	var result: Dictionary = _raycast(screen_pos)
+	var result: Dictionary = _raycast(screen_pos + finger_offset_px)
 	var material: StandardMaterial3D = _ghost.material_override
 	if result.is_empty():
 		_ghost_valid = false
@@ -200,7 +230,18 @@ func _apply_edge_pan(screen_pos: Vector2) -> void:
 
 
 func _commit_or_cancel() -> void:
-	if _ghost_valid:
+	if _editing_existing:
+		if _ghost_valid:
+			_edit_command.move_to(_ghost.global_transform)
+			_current_command = _edit_command
+			_state = State.ROTATING
+		else:
+			_state = State.IDLE
+		var body: RigidBody3D = _edit_command.get_body()
+		body.visible = true
+		body.collision_layer = PLACED_BLOCK_LAYER
+		_editing_existing = false
+	elif _ghost_valid:
 		_current_command = PlacementCommand.new(get_parent(), _definition, _ghost.global_transform)
 		_current_command.do()
 		_state = State.ROTATING
@@ -215,3 +256,85 @@ func _apply_rotation(relative_x: float) -> void:
 	var viewport_width: float = get_viewport().get_visible_rect().size.x
 	var radians: float = deg_to_rad(rotation_degrees_per_screen_width) * (relative_x / viewport_width)
 	_current_command.get_body().rotate_y(radians)
+
+
+func _try_select_placed_block(position: Vector2) -> void:
+	var result: Dictionary = _raycast(position)
+	if result.is_empty():
+		return
+	var body: Object = result.collider
+	if not (body is Node) or not (body as Node).has_meta(&"command"):
+		return
+	_edit_command = (body as Node).get_meta(&"command")
+	_edit_command.set_highlighted(true)
+	camera_rig.input_enabled = false
+	_state = State.EDIT_MENU
+	_suppress_next_edit_menu_release = true
+	_show_radial_menu()
+
+
+func _show_radial_menu() -> void:
+	_radial_menu = Control.new()
+	_radial_menu.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_radial_menu.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	get_viewport().add_child(_radial_menu)
+
+	var screen_pos: Vector2 = camera_rig.get_camera().unproject_position(_edit_command.get_body().global_position)
+	var labels: Array = ["Move", "Rotate", "Sell"]
+	var callbacks: Array[Callable] = [_on_move_pressed, _on_rotate_pressed, _on_sell_pressed]
+	for i in labels.size():
+		var angle: float = TAU * i / labels.size() - PI / 2.0
+		var offset: Vector2 = Vector2(cos(angle), sin(angle)) * radial_menu_radius_px
+		var button: Button = Button.new()
+		button.text = labels[i]
+		button.custom_minimum_size = Vector2(96, 72)
+		button.position = screen_pos + offset - button.custom_minimum_size * 0.5
+		button.pressed.connect(callbacks[i])
+		_radial_menu.add_child(button)
+
+
+func _hide_radial_menu() -> void:
+	if _radial_menu != null:
+		_radial_menu.queue_free()
+		_radial_menu = null
+
+
+func _on_move_pressed() -> void:
+	_hide_radial_menu()
+	_definition = _edit_command.get_definition()
+	_editing_existing = true
+	var body: RigidBody3D = _edit_command.get_body()
+	body.visible = false
+	body.collision_layer = 0
+	_state = State.POSITIONING
+	if _ghost == null:
+		_ghost = _build_ghost()
+		add_child(_ghost)
+	_ghost.global_transform = body.global_transform
+	_ghost.visible = true
+	_ghost_valid = true
+
+
+func _on_rotate_pressed() -> void:
+	_hide_radial_menu()
+	_current_command = _edit_command
+	_state = State.ROTATING
+
+
+func _on_sell_pressed() -> void:
+	_hide_radial_menu()
+	_edit_command.undo() # refund lands in Phase 2 (FO-021) once coins exist
+	_edit_command = null
+	camera_rig.input_enabled = true
+	_state = State.IDLE
+	_definition = null
+
+
+func _deselect_edit() -> void:
+	if _edit_command != null:
+		_edit_command.set_highlighted(false)
+	_hide_radial_menu()
+	_edit_command = null
+	camera_rig.input_enabled = true
+	_state = State.IDLE
+	_definition = null
