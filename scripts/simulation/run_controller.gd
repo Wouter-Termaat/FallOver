@@ -10,6 +10,7 @@ extends Node
 
 signal run_started
 signal run_ended(last_live_body: Node)
+signal reset_performed
 
 @export var starter: RigidBody3D
 @export var camera_rig: CameraRig
@@ -114,6 +115,7 @@ func reset() -> void:
 		camera_rig.run_mode = false
 	if placement_controller != null:
 		placement_controller.set_process_unhandled_input(true)
+	reset_performed.emit()
 
 
 func set_fast_forward(on: bool) -> void:

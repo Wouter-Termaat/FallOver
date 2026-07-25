@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/camera_rig.tscn" id="1_camera_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/block_palette.tscn" id="2_block_palette"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/simulation/run_controller.gd" id="4_run_controller"]
 [ext_resource type="Script" path="res://scripts/camera/run_camera.gd" id="5_run_camera"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="6_game_hud"]
+[ext_resource type="Script" path="res://scripts/simulation/win_condition.gd" id="7_win_condition"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_Ground"]
 albedo_color = Color(0.509804, 0.729412, 0.380392, 1)
@@ -110,10 +111,12 @@ shape = SubResource("Shape_StartBlock")
 mesh = SubResource("Mesh_StartBlock")
 surface_material_override/0 = SubResource("Mat_Start")
 
-[node name="Victory" type="StaticBody3D" parent="."]
+[node name="Victory" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 4.5, 0)
 collision_layer = 4
-collision_mask = 0
+collision_mask = 12
+monitoring = true
+monitorable = true
 groups = ["Victory"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Victory"]
@@ -148,3 +151,8 @@ placement_controller = NodePath("../PlacementController")
 script = ExtResource("5_run_camera")
 run_controller = NodePath("../RunController")
 camera_rig = NodePath("../CameraRig")
+
+[node name="WinCondition" type="Node" parent="." node_paths=PackedStringArray("run_controller", "victory_area")]
+script = ExtResource("7_win_condition")
+run_controller = NodePath("../RunController")
+victory_area = NodePath("../Victory")

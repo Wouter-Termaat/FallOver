@@ -27,12 +27,18 @@ static func spawn(definition: BlockDefinition) -> RigidBody3D:
 	body.physics_material_override = material
 
 	var collision: CollisionShape3D = CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
 	var box_shape: BoxShape3D = BoxShape3D.new()
 	box_shape.size = definition.extents
 	collision.shape = box_shape
 	body.add_child(collision)
 
+	# Named explicitly: a node created via .new() gets an internal unique
+	# name like "@MeshInstance3D@6", not the clean class name — a later
+	# get_node("MeshInstance3D") (placement_command.gd's set_highlighted())
+	# would silently fail to find it otherwise. Cost real debugging time.
 	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
+	mesh_instance.name = "MeshInstance3D"
 	if definition.mesh_override != null:
 		mesh_instance.mesh = definition.mesh_override
 	else:

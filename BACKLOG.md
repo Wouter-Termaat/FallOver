@@ -117,7 +117,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 
 - [x] **FO-020** · M · Level and world definition resources
 - [x] **FO-021** · M · Coins — the level constraint
-- [ ] **FO-023** · M · Finish, win detection and fail state
+- [x] **FO-023** · M · Finish, win detection and fail state
 - [ ] **FO-025** · M · Opening fly-through
 - [ ] **FO-027** · M · Save system
 - [ ] **FO-024** · S · Stars
@@ -1384,7 +1384,7 @@ redo-all returns to the exact same total. `starting_coin_amount` is a placeholde
 
 ---
 
-### [ ] FO-023 — Finish, win detection and fail state · M
+### [x] FO-023 — Finish, win detection and fail state · M
 
 **Goal:** make the level winnable and losable.
 
@@ -1419,6 +1419,27 @@ starter.
 actually happened. So the last live body is the break point for failure feedback (PRD §4.10) — no separate
 tracking needed — and in Phase 3 it identifies which branch stalled (FO-044). Build the flag cleanly; three
 stories depend on it.
+
+**Findings:** The live flag itself was already built in FO-015 (RunController needed it for the camera's
+fit-to-box target) — this story just adds the chest. `Victory` changed from `StaticBody3D` to `Area3D`
+(`body_entered` signal) so `WinCondition` catches a hit directly rather than scanning contacts every tick.
+Win sequencing leaves the hold-then-signal gap FO-086 (Phase 5) will fill with a real chest-opening
+animation.
+
+**Found and fixed a real bug while testing:** `BlockSpawner` and `LevelLoader`'s starter both created their
+`CollisionShape3D`/`MeshInstance3D` children via `.new()` without ever setting an explicit `.name` —
+Godot gives code-created nodes an internal unique name like `"@MeshInstance3D@6"`, not the clean class
+name. Two existing lookups (`placement_command.gd`'s `set_highlighted()`, used by both FO-014's edit-select
+and this story's break-point highlight; and `run_controller.gd`'s `starter_height()`) were silently
+matching nothing on any body built purely in code — only the hand-authored `.tscn` scenes (where node
+names are literal strings in the file) happened to work, which is exactly why this went uncaught through
+FO-014/FO-015/FO-019. Fixed by explicitly naming both children wherever a body is built in code.
+
+**Verified headless** with a minimal ground+starter+chest scene (not the full island, to avoid its
+geometry uncertainty): a direct hit correctly fires `won`; a block already resting against the chest
+before the run starts, with the starter never reaching it, correctly does **not** win and the run
+correctly fails instead — both exploits named in the acceptance criteria confirmed closed. Not tested
+on-device; the win sequencing hold and fail-highlight visuals need your eyes.
 
 ---
 

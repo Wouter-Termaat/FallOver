@@ -53,13 +53,18 @@ static func _build_starter(level: LevelDefinition) -> RigidBody3D:
 	body.max_contacts_reported = 8
 	body.add_to_group("Start")
 
+	# Named explicitly — get_node("CollisionShape3D") elsewhere
+	# (run_controller.gd's starter_height()) needs the clean name, not the
+	# "@CollisionShape3D@N" a node created via .new() gets otherwise.
 	var collision: CollisionShape3D = CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
 	var box_shape: BoxShape3D = BoxShape3D.new()
 	box_shape.size = STARTER_FINISH_SIZE
 	collision.shape = box_shape
 	body.add_child(collision)
 
 	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
+	mesh_instance.name = "MeshInstance3D"
 	var box_mesh: BoxMesh = BoxMesh.new()
 	box_mesh.size = STARTER_FINISH_SIZE
 	mesh_instance.mesh = box_mesh
@@ -71,14 +76,17 @@ static func _build_starter(level: LevelDefinition) -> RigidBody3D:
 	return body
 
 
-static func _build_finish(level: LevelDefinition) -> StaticBody3D:
-	# Grey-box only, matching FO-009's convention — FO-023 replaces this
-	# with a real chest + live-flag hit detector.
-	var body: StaticBody3D = StaticBody3D.new()
+static func _build_finish(level: LevelDefinition) -> Area3D:
+	# Grey-box shape (a real chest is FO-086, Phase 5) but a real hit
+	# detector — Area3D so WinCondition (FO-023) can catch a live body
+	# entering it directly via body_entered, no per-tick contact scanning.
+	var body: Area3D = Area3D.new()
 	body.name = "Victory"
 	body.transform = level.finish_transform
 	body.collision_layer = 4
-	body.collision_mask = 0
+	body.collision_mask = 4 | 8 # starter (4) or a placed block (8)
+	body.monitoring = true
+	body.monitorable = true
 	body.add_to_group("Victory")
 
 	var collision: CollisionShape3D = CollisionShape3D.new()
