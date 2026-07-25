@@ -86,7 +86,7 @@ phase sections below. Tick a box here *and* in the story itself when it's done.
 
 - [x] **FO-000** · S · Move the repo out of OneDrive and add a remote
 - [x] **FO-001** · S · Create the Godot project skeleton
-- [ ] **FO-002** · S · Configure physics for reliability
+- [x] **FO-002** · S · Configure physics for reliability
 - [ ] **FO-003** · M · Grey-box test scene with a falling domino chain
 - [ ] **FO-008** · M · Determine the unit scale
 - [ ] **FO-006** · M · Android export pipeline
@@ -274,7 +274,7 @@ assumes.
 
 ---
 
-### [ ] FO-002 — Configure physics for reliability · S
+### [x] FO-002 — Configure physics for reliability · S
 
 **Goal:** implement PRD §13.1's fixed-tick rules as project settings, and document them.
 
@@ -305,6 +305,20 @@ rely on comments in that file to record decisions — put the reasoning in `docs
 
 **Note:** confirm the exact setting paths against the Godot 4.7 docs before editing. Names have moved
 between 4.x releases; the values above were checked but should be re-verified.
+
+**Findings (FO-002):**
+
+- All three setting paths verified **empirically against the installed 4.7.1 binary** (more authoritative
+  than the docs, whose online ProjectSettings page didn't render the values). Confirmed unchanged in 4.7:
+  `physics/common/physics_ticks_per_second` (default 60), `physics/common/max_physics_steps_per_frame`
+  (default 8), `physics/common/physics_interpolation` (default `false`).
+- Setting a value that *equals* Godot's default (60 and 8) **does survive** in `project.godot` across a
+  headless open — it is not stripped the way comments are. The explicitness the story asks for is durable.
+- Values confirmed read back at runtime as 60 / 8 / `true`.
+- **Tooling note for later stories:** `C:\Program Files\Godot\Godot_v4.7.1-stable_win64.exe` is the GUI
+  build, so it writes nothing to stdout/stderr when run from a shell — a failing script looks identical to
+  a passing one. Pass `--log-file <path>` and read the log, or errors will be invisible. There is no
+  `_console.exe` alongside it.
 
 ---
 

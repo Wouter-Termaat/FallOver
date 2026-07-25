@@ -22,3 +22,9 @@ window/size/viewport_height=1920
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
+
+[physics]
+
+common/physics_ticks_per_second=60
+common/max_physics_steps_per_frame=8
+common/physics_interpolation=true
